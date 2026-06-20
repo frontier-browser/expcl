@@ -5,115 +5,168 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EXPENSE CALCULATOR</title>
 <style>
-body{font-family:Arial,sans-serif;background:#0b1220;color:#fff;margin:0}
-header{padding:20px;background:#111827;display:flex;justify-content:space-between;align-items:center}
-.container{max-width:1200px;margin:auto;padding:20px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
-.card{background:#1f2937;padding:20px;border-radius:12px}
-button{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
-input,select{padding:10px;border-radius:8px;border:1px solid #374151;background:#111827;color:#fff}
-table{width:100%;border-collapse:collapse;margin-top:20px}
-th,td{padding:12px;border-bottom:1px solid #374151;text-align:left}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
-.modal-content{background:#1f2937;padding:20px;border-radius:12px;width:90%;max-width:500px}
-.row{display:flex;gap:10px;margin-bottom:10px}
-.row>*{flex:1}
+    body { font-family: Arial, sans-serif; background: #0b1220; color: #fff; margin: 0; }
+    header { padding: 20px; background: #111827; display: flex; justify-content: space-between; align-items: center; }
+    .container { max-width: 1200px; margin: auto; padding: 20px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+    .card { background: #1f2937; padding: 20px; border-radius: 12px; }
+    button { background: #2563eb; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #1d4ed8; }
+    input, select { padding: 10px; border-radius: 8px; border: 1px solid #374151; background: #111827; color: #fff; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 12px; border-bottom: 1px solid #374151; text-align: left; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); align-items: center; justify-content: center; }
+    .modal-content { background: #1f2937; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; }
+    .row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .row > * { flex: 1; }
+    .danger-btn { background: #ef4444; }
+    .danger-btn:hover { background: #dc2626; }
 </style>
 </head>
 <body>
-<header>
-<h1>Subscription Manager Pro</h1>
-<button onclick="openModal()">+ Add Subscription</button>
-</header>
+    <header>
+        <h1>Subscription Manager Pro</h1>
+        <button onclick="openModal()">+ Add Subscription</button>
+    </header>
 
-<div class="container">
-<div class="cards">
-<div class="card"><h3>Monthly Spend</h3><h2 id="monthly">$0</h2></div>
-<div class="card"><h3>Yearly Spend</h3><h2 id="yearly">$0</h2></div>
-<div class="card"><h3>Total Subs</h3><h2 id="count">0</h2></div>
-</div>
+    <div class="container">
+        <div class="cards">
+            <div class="card">
+                <h3>Monthly Spend</h3>
+                <h2 id="monthly">$0.00</h2>
+            </div>
+            <div class="card">
+                <h3>Yearly Spend</h3>
+                <h2 id="yearly">$0.00</h2>
+            </div>
+            <div class="card">
+                <h3>Total Subs</h3>
+                <h2 id="count">0</h2>
+            </div>
+        </div>
 
-<br>
-<input id="search" placeholder="Search subscriptions..." oninput="render()">
+        <br>
+        <input id="search" placeholder="Search subscriptions..." oninput="render()" style="width: 100%; max-width: 300px;">
 
-<table>
-<thead>
-<tr>
-<th>Name</th><th>Category</th><th>Cycle</th><th>Date</th><th>Amount</th><th>Action</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
-</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Cycle</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
 
-<div class="modal" id="modal">
-<div class="modal-content">
-<h2>Add Subscription</h2>
-<div class="row"><input id="name" placeholder="Service Name"></div>
-<div class="row"><input id="category" placeholder="Category"></div>
-<div class="row">
-<select id="cycle">
-<option>Monthly</option>
-<option>Yearly</option>
-</select>
-<input id="date" type="date">
-</div>
-<div class="row"><input id="amount" type="number" placeholder="Amount"></div>
-<button onclick="addSub()">Save</button>
-<button onclick="closeModal()">Cancel</button>
-</div>
-</div>
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2>Add Subscription</h2>
+            <br>
+            <div class="row">
+                <input id="name" placeholder="Service Name">
+            </div>
+            <div class="row">
+                <input id="category" placeholder="Category">
+            </div>
+            <div class="row">
+                <select id="cycle">
+                    <option>Monthly</option>
+                    <option>Yearly</option>
+                </select>
+                <input id="date" type="date">
+            </div>
+            <div class="row">
+                <input id="amount" type="number" placeholder="Amount">
+            </div>
+            <div class="row" style="margin-top: 15px;">
+                <button onclick="addSub()">Save</button>
+                <button onclick="closeModal()" class="danger-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-<script>
-let subs=JSON.parse(localStorage.getItem("subs")||"[]");
+    <script>
+        let subs = JSON.parse(localStorage.getItem("subs") || "[]");
 
-function save(){localStorage.setItem("subs",JSON.stringify(subs));}
+        function save() {
+            localStorage.setItem("subs", JSON.stringify(subs));
+        }
 
-function render(){
-const q=document.getElementById("search").value.toLowerCase();
-const tb=document.getElementById("tbody");
-tb.innerHTML="";
-let monthly=0;
+        function render() {
+            const q = document.getElementById("search").value.toLowerCase();
+            const tb = document.getElementById("tbody");
+            tb.innerHTML = "";
+            let monthly = 0;
 
-subs.filter(s=>s.name.toLowerCase().includes(q)).forEach((s,i)=>{
-monthly += s.cycle==="Monthly"?Number(s.amount):Number(s.amount)/12;
-tb.innerHTML += `<tr>
-<td>${s.name}</td>
-<td>${s.category}</td>
-<td>${s.cycle}</td>
-<td>${s.date}</td>
-<td>$${s.amount}</td>
-<td><button onclick="del(${i})">Delete</button></td>
-</tr>`;
-});
+            subs.filter(s => s.name.toLowerCase().includes(q)).forEach((s, i) => {
+                const amountNum = parseFloat(s.amount) || 0; 
+                monthly += s.cycle === "Monthly" ? amountNum : amountNum / 12;
+                
+                tb.innerHTML += `<tr>
+                    <td>${s.name}</td>
+                    <td>${s.category}</td>
+                    <td>${s.cycle}</td>
+                    <td>${s.date}</td>
+                    <td>$${amountNum.toFixed(2)}</td>
+                    <td><button class="danger-btn" onclick="del(${i})">Delete</button></td>
+                </tr>`;
+            });
 
-document.getElementById("monthly").innerText="$"+monthly.toFixed(2);
-document.getElementById("yearly").innerText="$"+(monthly*12).toFixed(2);
-document.getElementById("count").innerText=subs.length;
-}
+            document.getElementById("monthly").innerText = "$" + monthly.toFixed(2);
+            document.getElementById("yearly").innerText = "$" + (monthly * 12).toFixed(2);
+            document.getElementById("count").innerText = subs.length;
+        }
 
-function addSub(){
-subs.push({
-name:name.value,
-category:category.value,
-cycle:cycle.value,
-date:date.value,
-amount:amount.value
-});
-save();
-closeModal();
-render();
-}
+        function addSub() {
+            const nameInput = document.getElementById("name").value;
+            const categoryInput = document.getElementById("category").value;
+            const cycleInput = document.getElementById("cycle").value;
+            const dateInput = document.getElementById("date").value;
+            const amountInput = document.getElementById("amount").value;
 
-function del(i){
-subs.splice(i,1);
-save();
-render();
-}
+            if (!nameInput || !amountInput) {
+                alert("Please enter at least a name and amount.");
+                return;
+            }
 
-function openModal(){modal.style.display="flex";}
-function closeModal(){modal.style.display="none";}
-render();
-</script>
+            subs.push({
+                name: nameInput,
+                category: categoryInput,
+                cycle: cycleInput,
+                date: dateInput,
+                amount: amountInput
+            });
+            
+            save();
+            closeModal();
+            render();
+        }
+
+        function del(i) {
+            subs.splice(i, 1);
+            save();
+            render();
+        }
+
+        function openModal() {
+            document.getElementById("modal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+            document.getElementById("name").value = "";
+            document.getElementById("category").value = "";
+            document.getElementById("date").value = "";
+            document.getElementById("amount").value = "";
+        }
+
+        // Initial render on page load
+        render();
+    </script>
 </body>
 </html>
