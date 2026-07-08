@@ -3,464 +3,807 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frontier Accounting</title>
+    <title>Frontier ERP - Accounting Ecosystem</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        odoo: '#714B67',
+                        odooDark: '#5A3B52'
+                    }
+                }
+            }
         }
     </script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .modal { transition: opacity 0.25s ease; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Core Language Localization Engine */
+        body.lang-bn .en-text { display: none !important; }
+        body.lang-en .bn-text { display: none !important; }
     </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+<body class="lang-en bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
-    <div class="bg-slate-900 dark:bg-black text-white p-4 flex justify-between items-center shadow-md border-b border-slate-700">
+    <!-- Top Odoo-Style Navbar Navigation -->
+    <div class="bg-odoo text-white p-4 flex flex-wrap justify-between items-center shadow-md border-b border-purple-900/30 gap-4">
         <div class="flex items-center gap-4">
-            <img src="frontier-accounting.png" alt="Frontier Accounting Logo" class="h-14 w-auto bg-white rounded p-1 object-contain" onerror="this.style.display='none'">
-            <h1 class="font-bold text-2xl tracking-tight">Frontier Accounting<span class="text-sm bg-slate-700 px-2 py-1 rounded text-blue-400 ml-2">Pro V3.1</span></h1>
+            <div class="bg-white p-1.5 rounded-lg shadow-inner">
+                <span class="text-odoo font-black text-xl tracking-wider px-1">F</span>
+            </div>
+            <div>
+                <h1 class="font-bold text-xl tracking-tight flex items-center gap-2">
+                    <span class="en-text">Frontier Enterprise</span><span class="bn-text">ফ্রন্টিয়ার এন্টারপ্রাইজ</span> 
+                    <span class="text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded font-mono">v4.1 Core</span>
+                </h1>
+                <p id="headerAccountName" class="text-xs text-purple-200 mt-0.5">
+                    <span class="en-text">Initializing system database...</span><span class="bn-text">সিস্টেম ডেটাবেস প্রস্তুত করা হচ্ছে...</span>
+                </p>
+            </div>
         </div>
-        <div class="flex items-center gap-2">
-            <button onclick="toggleDark()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition">
-                🌙 Toggle Theme
+        
+        <!-- App Engine Quick Menu Controls -->
+        <div class="flex items-center gap-3">
+            <!-- Language Switcher -->
+            <div class="flex items-center gap-1 bg-black/20 p-1 rounded-lg">
+                <button onclick="setLanguage('en')" id="btn-lang-en" class="px-3 py-1.5 rounded-md text-xs font-bold bg-white text-odoo transition">EN (UK)</button>
+                <button onclick="setLanguage('bn')" id="btn-lang-bn" class="px-3 py-1.5 rounded-md text-xs font-bold text-white hover:bg-white/10 transition">বাংলা</button>
+            </div>
+            <div class="w-px h-6 bg-white/20 mx-1"></div>
+            <button onclick="openModal('accountModal')" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                👤 <span class="en-text">Profile</span><span class="bn-text">প্রোফাইল</span>
+            </button>
+            <button onclick="openModal('resetModal')" class="bg-rose-700/80 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                🚨 <span class="en-text">Factory Reset</span><span class="bn-text">ফ্যাক্টরি রিসেট</span>
+            </button>
+            <button onclick="toggleDark()" class="bg-black/20 hover:bg-black/30 p-2 rounded-lg text-xs transition">🌙</button>
+        </div>
+    </div>
+
+    <!-- Odoo Module Tabs Bar Switcher -->
+    <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-40 overflow-x-auto">
+        <div class="max-w-7xl mx-auto flex flex-nowrap gap-1 px-4 min-w-max">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-odoo transition flex items-center gap-2">
+                📊 <span class="en-text">Dashboard</span><span class="bn-text">ড্যাশবোর্ড</span>
+            </button>
+            <button onclick="switchTab('partners')" id="btn-partners" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-odoo transition flex items-center gap-2">
+                👥 <span class="en-text">Contacts</span><span class="bn-text">পরিচিতি</span>
+            </button>
+            <button onclick="switchTab('sales')" id="btn-sales" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-odoo transition flex items-center gap-2">
+                🧾 <span class="en-text">Sales (Invoices)</span><span class="bn-text">বিক্রয় (ইনভয়েস)</span>
+            </button>
+            <button onclick="switchTab('purchases')" id="btn-purchases" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-odoo transition flex items-center gap-2">
+                🛒 <span class="en-text">Purchases (Bills)</span><span class="bn-text">ক্রয় (বিল)</span>
+            </button>
+            <button onclick="switchTab('accounting')" id="btn-accounting" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-odoo transition flex items-center gap-2">
+                ⚖️ <span class="en-text">Journal & Ledger</span><span class="bn-text">জাবেদা ও খতিয়ান</span>
+            </button>
+            <button onclick="switchTab('reporting')" id="btn-reporting" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-odoo transition flex items-center gap-2">
+                📈 <span class="en-text">Financial Reports</span><span class="bn-text">আর্থিক প্রতিবেদন</span>
             </button>
         </div>
     </div>
 
+    <!-- Central Workspace Viewport -->
     <div class="p-6 max-w-7xl mx-auto space-y-6">
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <p class="text-xs uppercase font-semibold text-slate-400">Total Customers</p>
-                <div id="custCount" class="text-3xl font-bold mt-1">0</div>
-            </div>
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <p class="text-xs uppercase font-semibold text-slate-400">Active Products</p>
-                <div id="prodCount" class="text-3xl font-bold mt-1">0</div>
-            </div>
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <p class="text-xs uppercase font-semibold text-slate-400">Total Invoices</p>
-                <div id="invCount" class="text-3xl font-bold mt-1">0</div>
-            </div>
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-emerald-500/20 dark:border-emerald-500/10 bg-emerald-50/10">
-                <p class="text-xs uppercase font-semibold text-emerald-600 dark:text-emerald-400">Total Revenue</p>
-                <div id="revenue" class="text-3xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">৳0</div>
-            </div>
-        </div>
 
-        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-wrap gap-3 items-center justify-between">
-            <div class="flex flex-wrap gap-2">
-                <button onclick="openModal('customerModal')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm">+ Add Customer</button>
-                <button onclick="openModal('productModal')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm">+ Add Product</button>
-                <button onclick="openInvoiceModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm">🧾 Create Invoice</button>
-            </div>
-            <div class="flex items-center gap-2 border-t pt-3 md:pt-0 md:border-t-0 w-full md:w-auto">
-                <button onclick="exportPDF()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm">📄 Export Invoices (PDF)</button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <h2 class="font-bold text-lg mb-4 flex items-center gap-2">👥 Customers Ledger</h2>
-                <div class="overflow-x-auto max-h-64">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 dark:bg-slate-700/50 sticky top-0 text-slate-400 font-semibold uppercase text-xs">
-                            <tr><th class="p-3">Customer Name</th><th class="p-3 text-right">Actions</th></tr>
-                        </thead>
-                        <tbody id="customers" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
-                    </table>
+        <!-- ================= TAB: DASHBOARD ================= -->
+        <div id="tab-dashboard" class="tab-content space-y-6">
+            <!-- ERP KPI Metrics -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs uppercase font-semibold text-slate-400"><span class="en-text">Liquid Cash & Bank Balance</span><span class="bn-text">নগদ ও ব্যাংক স্থিতি</span></p>
+                    <div id="statCash" class="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">৳0.00</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs uppercase font-semibold text-slate-400"><span class="en-text">Accounts Receivable (A/R)</span><span class="bn-text">প্রাপ্য হিসাব (A/R)</span></p>
+                    <div id="statAR" class="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">৳0.00</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs uppercase font-semibold text-slate-400"><span class="en-text">Accounts Payable (A/P)</span><span class="bn-text">প্রদেয় হিসাব (A/P)</span></p>
+                    <div id="statAP" class="text-2xl font-bold mt-1 text-rose-600 dark:text-rose-400">৳0.00</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs uppercase font-semibold text-slate-400"><span class="en-text">Net Accumulated Revenue</span><span class="bn-text">নিট পুঞ্জীভূত আয়</span></p>
+                    <div id="statRevenue" class="text-2xl font-bold mt-1">৳0.00</div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <h2 class="font-bold text-lg mb-4 flex items-center gap-2">📦 Product Catalog</h2>
-                <div class="overflow-x-auto max-h-64">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 dark:bg-slate-700/50 sticky top-0 text-slate-400 font-semibold uppercase text-xs">
-                            <tr><th class="p-3">Item Name</th><th class="p-3">Base Price</th><th class="p-3 text-right">Actions</th></tr>
-                        </thead>
-                        <tbody id="products" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
-                    </table>
+            <!-- Dashboard Split Panel Workspace -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Action Center Box -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                    <h3 class="font-bold text-md border-b pb-2 border-slate-100 dark:border-slate-700">
+                        ⚡ <span class="en-text">ERP Quick Operations</span><span class="bn-text">ইআরপি কুইক অপারেশনস</span>
+                    </h3>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="openModal('partnerModal')" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 p-3 rounded-lg text-left text-xs font-semibold flex justify-between items-center transition">
+                            <span>➕ <span class="en-text">Add New Contact (Customer/Vendor)</span><span class="bn-text">নতুন পরিচিতি যোগ করুন</span></span> ➡️
+                        </button>
+                        <button onclick="openInvoiceModal('customer')" class="bg-odoo hover:bg-odooDark text-white p-3 rounded-lg text-left text-xs font-semibold flex justify-between items-center transition">
+                            <span>🧾 <span class="en-text">Issue Sales Customer Invoice</span><span class="bn-text">গ্রাহক বিক্রয় ইনভয়েস তৈরি করুন</span></span> ➡️
+                        </button>
+                        <button onclick="openInvoiceModal('vendor')" class="bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-left text-xs font-semibold flex justify-between items-center transition">
+                            <span>🛒 <span class="en-text">Record Supplier Vendor Bill</span><span class="bn-text">সরবরাহকারী বিল রেকর্ড করুন</span></span> ➡️
+                        </button>
+                        <button onclick="openModal('journalModal')" class="bg-slate-800 hover:bg-slate-900 text-white p-3 rounded-lg text-left text-xs font-semibold flex justify-between items-center transition">
+                            <span>⚖️ <span class="en-text">Post Manual Journal Entry</span><span class="bn-text">ম্যানুয়াল জাবেদা এন্ট্রি দিন</span></span> ➡️
+                        </button>
+                    </div>
+                </div>
+                <!-- Realtime Audit Log Engine -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 lg:col-span-2 flex flex-col">
+                    <h3 class="font-bold text-md border-b pb-2 border-slate-100 dark:border-slate-700">
+                        🔒 <span class="en-text">Live System Audit Logs</span><span class="bn-text">লাইভ সিস্টেম অডিট লগ</span>
+                    </h3>
+                    <div id="dashboardAuditLogs" class="overflow-y-auto max-h-60 mt-3 text-xs font-mono space-y-2 flex-grow"></div>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-            <h2 class="font-bold text-lg mb-4 flex items-center gap-2">🧾 Billing & Invoices</h2>
+        <!-- ================= TAB: PARTNERS / CONTACTS ================= -->
+        <div id="tab-partners" class="tab-content bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-lg">👥 <span class="en-text">Enterprise Master Contacts Directory</span><span class="bn-text">এন্টারপ্রাইজ মাস্টার পরিচিতি ডিরেক্টরি</span></h2>
+                <button onclick="openModal('partnerModal')" class="bg-odoo text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-odooDark transition">
+                    + <span class="en-text">Create Partner Card</span><span class="bn-text">পার্টনার কার্ড তৈরি করুন</span>
+                </button>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-400 font-semibold uppercase text-xs">
                         <tr>
-                            <th class="p-3">Invoice ID</th>
-                            <th class="p-3">Client</th>
-                            <th class="p-3">Item Details</th>
-                            <th class="p-3">Gross Total (Inc VAT)</th>
-                            <th class="p-3">Status</th>
-                            <th class="p-3 text-right">Action</th>
+                            <th class="p-3"><span class="en-text">Partner Reference</span><span class="bn-text">পার্টনার রেফারেন্স</span></th>
+                            <th class="p-3"><span class="en-text">Contact/Company Name</span><span class="bn-text">কোম্পানির নাম</span></th>
+                            <th class="p-3"><span class="en-text">Relationship Role</span><span class="bn-text">সম্পর্কের ধরন</span></th>
+                            <th class="p-3 text-right"><span class="en-text">Actions</span><span class="bn-text">অ্যাকশন</span></th>
                         </tr>
                     </thead>
-                    <tbody id="invoices" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                    <tbody id="partnersTableBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
                 </table>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 lg:col-span-2">
-                <h2 class="font-bold text-lg mb-4 flex items-center gap-2">⚖️ General Ledger</h2>
-                <div class="overflow-x-auto max-h-80">
+        <!-- ================= TAB: SALES ================= -->
+        <div id="tab-sales" class="tab-content space-y-4">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-2">
+                <h2 class="font-bold text-lg">🧾 <span class="en-text">Customer Invoices (A/R)</span><span class="bn-text">গ্রাহক ইনভয়েস (প্রাপ্য হিসাব)</span></h2>
+                <div class="flex gap-2">
+                    <button onclick="exportPDF('customer')" class="bg-slate-700 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-600 transition">
+                        📄 <span class="en-text">Download Sales PDF</span><span class="bn-text">সেলস পিডিএফ ডাউনলোড</span>
+                    </button>
+                    <button onclick="openInvoiceModal('customer')" class="bg-odoo text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-odooDark transition">
+                        + <span class="en-text">Create Customer Invoice</span><span class="bn-text">নতুন ইনভয়েস তৈরি করুন</span>
+                    </button>
+                </div>
+            </div>
+            <p class="text-[10px] text-slate-400 pl-2"><span class="en-text">* PDF Documents explicitly export in English (UK) to guarantee structural font rendering compliance.</span><span class="bn-text">* ফন্ট রেন্ডারিং বজায় রাখতে পিডিএফ ডকুমেন্ট ডিফল্টরূপে ইংরেজিতে এক্সপোর্ট হয়।</span></p>
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-400 font-semibold uppercase text-xs">
+                        <tr>
+                            <th class="p-3"><span class="en-text">Invoice ID</span><span class="bn-text">ইনভয়েস আইডি</span></th>
+                            <th class="p-3"><span class="en-text">Client Customer</span><span class="bn-text">গ্রাহক</span></th>
+                            <th class="p-3"><span class="en-text">Description</span><span class="bn-text">বিবরণ</span></th>
+                            <th class="p-3"><span class="en-text">Total Amount</span><span class="bn-text">মোট পরিমাণ</span></th>
+                            <th class="p-3"><span class="en-text">Status</span><span class="bn-text">স্ট্যাটাস</span></th>
+                            <th class="p-3 text-right"><span class="en-text">Gateway Action</span><span class="bn-text">গেটওয়ে অ্যাকশন</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= TAB: PURCHASES ================= -->
+        <div id="tab-purchases" class="tab-content space-y-4">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-2">
+                <h2 class="font-bold text-lg">🛒 <span class="en-text">Supplier & Vendor Bills (A/P)</span><span class="bn-text">সরবরাহকারী বিল (প্রদেয় হিসাব)</span></h2>
+                <div class="flex gap-2">
+                    <button onclick="exportPDF('vendor')" class="bg-slate-700 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-600 transition">
+                        📄 <span class="en-text">Download Purchase PDF</span><span class="bn-text">পারচেজ পিডিএফ ডাউনলোড</span>
+                    </button>
+                    <button onclick="openInvoiceModal('vendor')" class="bg-emerald-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-emerald-700 transition">
+                        + <span class="en-text">Record Vendor Bill</span><span class="bn-text">ভেন্ডর বিল রেকর্ড করুন</span>
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-400 font-semibold uppercase text-xs">
+                        <tr>
+                            <th class="p-3"><span class="en-text">Bill Ref ID</span><span class="bn-text">বিল রেফারেন্স</span></th>
+                            <th class="p-3"><span class="en-text">Vendor/Supplier</span><span class="bn-text">সরবরাহকারী</span></th>
+                            <th class="p-3"><span class="en-text">Expense Specs</span><span class="bn-text">বিবরণ</span></th>
+                            <th class="p-3"><span class="en-text">Gross Total</span><span class="bn-text">মোট পরিমাণ</span></th>
+                            <th class="p-3"><span class="en-text">Status</span><span class="bn-text">স্ট্যাটাস</span></th>
+                            <th class="p-3 text-right"><span class="en-text">Gateway Action</span><span class="bn-text">গেটওয়ে অ্যাকশন</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="purchaseTableBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= TAB: ACCOUNTING ================= -->
+        <div id="tab-accounting" class="grid grid-cols-1 lg:grid-cols-3 gap-6 tab-content">
+            <!-- Chart of Accounts -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 lg:col-span-1 space-y-4">
+                <h3 class="font-bold text-lg">📊 <span class="en-text">Balanced Chart of Accounts (CoA)</span><span class="bn-text">ভারসাম্যপূর্ণ হিসাবের তালিকা</span></h3>
+                <div class="divide-y divide-slate-100 dark:divide-slate-700 text-xs" id="chartOfAccountsContainer"></div>
+            </div>
+            <!-- General Ledger -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 lg:col-span-2 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-lg">⚖️ <span class="en-text">Double-Entry Journal Postings</span><span class="bn-text">দ্বৈত-সত্তা জাবেদা পোস্টিং</span></h3>
+                    <button onclick="openModal('journalModal')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-2 rounded-lg transition">
+                        + <span class="en-text">Create Manual Journal</span><span class="bn-text">ম্যানুয়াল জাবেদা তৈরি করুন</span>
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-[500px]">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 dark:bg-slate-700/50 sticky top-0 text-slate-400 font-semibold uppercase text-xs">
-                            <tr><th class="p-3">Account Head</th><th class="p-3 text-emerald-600">Debit (Dr)</th><th class="p-3 text-rose-600">Credit (Cr)</th></tr>
+                        <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-400 font-semibold uppercase text-xs sticky top-0">
+                            <tr>
+                                <th class="p-3"><span class="en-text">Posting Reference</span><span class="bn-text">রেফারেন্স</span></th>
+                                <th class="p-3"><span class="en-text">Account Head</span><span class="bn-text">অ্যাকাউন্টের নাম</span></th>
+                                <th class="p-3 text-emerald-600"><span class="en-text">Debit (Dr)</span><span class="bn-text">ডেবিট (Dr)</span></th>
+                                <th class="p-3 text-rose-600"><span class="en-text">Credit (Cr)</span><span class="bn-text">ক্রেডিট (Cr)</span></th>
+                            </tr>
                         </thead>
-                        <tbody id="ledger" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                        <tbody id="journalLedgerTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 font-mono text-xs"></tbody>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <h2 class="font-bold text-lg mb-4 flex items-center gap-2">🔒 System Audit Trail</h2>
-                <div class="overflow-y-auto max-h-80 text-xs space-y-2 font-mono" id="auditTrail"></div>
+        <!-- ================= TAB: REPORTING ================= -->
+        <div id="tab-reporting" class="grid grid-cols-1 lg:grid-cols-2 gap-6 tab-content">
+            <!-- P&L Statement -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                <div class="border-b pb-3 border-slate-100 dark:border-slate-700">
+                    <h3 class="font-bold text-xl">📈 <span class="en-text">Profit & Loss Statement (P&L)</span><span class="bn-text">লাভ-ক্ষতি বিবরণী (P&L)</span></h3>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between font-semibold border-b pb-1">
+                        <span><span class="en-text">Operating Revenue (+)</span><span class="bn-text">পরিচালন আয় (+)</span></span>
+                        <span id="plRevenue" class="text-emerald-600">৳0.00</span>
+                    </div>
+                    <div class="flex justify-between font-semibold border-b pb-1 text-rose-500">
+                        <span><span class="en-text">Operating Costs & Expenses (-)</span><span class="bn-text">পরিচালন ব্যয় (-)</span></span>
+                        <span id="plExpense">৳0.00</span>
+                    </div>
+                    <div class="flex justify-between font-black text-lg pt-4 border-t-2 border-slate-300 dark:border-slate-600">
+                        <span><span class="en-text">Net Operating Surplus Income</span><span class="bn-text">নিট পরিচালন উদ্বৃত্ত</span></span>
+                        <span id="plNetProfit">৳0.00</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Balance Sheet -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                <div class="border-b pb-3 border-slate-100 dark:border-slate-700">
+                    <h3 class="font-bold text-xl">🏛️ <span class="en-text">Balance Sheet Report</span><span class="bn-text">উদ্বৃত্তপত্র (ব্যালেন্স শিট)</span></h3>
+                </div>
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <h4 class="font-bold text-xs uppercase text-blue-500 tracking-wider mb-1"><span class="en-text">Total Current Assets</span><span class="bn-text">মোট চলতি সম্পদ</span></h4>
+                        <div class="flex justify-between pl-2 border-l border-slate-200 text-xs">
+                            <span><span class="en-text">Liquid Corporate Cash & Banks</span><span class="bn-text">নগদ ও ব্যাংক স্থিতি</span></span>
+                            <span id="bsCash">৳0.00</span>
+                        </div>
+                        <div class="flex justify-between pl-2 border-l border-slate-200 text-xs mt-1">
+                            <span><span class="en-text">Outstanding Accounts Receivables</span><span class="bn-text">প্রাপ্য হিসাবসমূহ</span></span>
+                            <span id="bsAR">৳0.00</span>
+                        </div>
+                        <div class="flex justify-between font-bold border-t mt-1 pt-1 text-slate-700 dark:text-slate-300">
+                            <span><span class="en-text">Sum Total Assets</span><span class="bn-text">মোট সম্পদ</span></span>
+                            <span id="bsTotalAssets">৳0.00</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs uppercase text-rose-500 tracking-wider mb-1"><span class="en-text">Total Liabilities & Equity</span><span class="bn-text">মোট দায় ও ইক্যুইটি</span></h4>
+                        <div class="flex justify-between pl-2 border-l border-slate-200 text-xs">
+                            <span><span class="en-text">Outstanding Accounts Payables</span><span class="bn-text">প্রদেয় হিসাবসমূহ</span></span>
+                            <span id="bsAP">৳0.00</span>
+                        </div>
+                        <div class="flex justify-between pl-2 border-l border-slate-200 text-xs mt-1">
+                            <span><span class="en-text">Collected Statutory VAT Payables</span><span class="bn-text">সংগৃহীত ভ্যাট প্রদেয়</span></span>
+                            <span id="bsVAT">৳0.00</span>
+                        </div>
+                        <div class="flex justify-between pl-2 border-l border-slate-200 text-xs mt-1 font-italic text-slate-400">
+                            <span><span class="en-text">Retained Business Earnings (Equity)</span><span class="bn-text">সংরক্ষিত ব্যবসায়িক আয় (ইক্যুইটি)</span></span>
+                            <span id="bsEquity">৳0.00</span>
+                        </div>
+                        <div class="flex justify-between font-bold border-t mt-1 pt-1 text-slate-700 dark:text-slate-300">
+                            <span><span class="en-text">Sum Total Liabilities & Equity</span><span class="bn-text">মোট দায় ও ইক্যুইটি</span></span>
+                            <span id="bsTotalLiabilities">৳0.00</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg text-center text-xs font-bold font-mono text-emerald-600 border border-emerald-500/20" id="bsEquationCheck">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
             </div>
         </div>
 
     </div>
 
-    <div id="customerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <!-- ================= MODALS ================= -->
+
+    <!-- Profile Modal -->
+    <div id="accountModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
-            <h3 class="text-lg font-bold mb-4">Add New Customer</h3>
-            <form onsubmit="submitCustomer(event)" class="space-y-4">
+            <h3 class="text-lg font-bold mb-2">👤 <span class="en-text">System Account Profile</span><span class="bn-text">সিস্টেম অ্যাকাউন্ট প্রোফাইল</span></h3>
+            <form onsubmit="submitAccount(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Customer Full Name</label>
-                    <input type="text" id="custNameInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Administrator Name</span><span class="bn-text">অ্যাডমিনিস্ট্রেটরের নাম</span></label>
+                    <input type="text" id="accAdminInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Enterprise Business Title</span><span class="bn-text">এন্টারপ্রাইজ ব্যবসার নাম</span></label>
+                    <input type="text" id="accBizInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div class="flex justify-end gap-2 text-sm pt-2">
-                    <button type="button" onclick="closeModal('customerModal')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Save Record</button>
+                    <button type="button" onclick="closeModal('accountModal')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span class="en-text">Dismiss</span><span class="bn-text">বাতিল</span></button>
+                    <button type="submit" class="px-4 py-2 bg-odoo text-white rounded-lg font-semibold hover:bg-odooDark"><span class="en-text">Save Changes</span><span class="bn-text">সংরক্ষণ করুন</span></button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="productModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <!-- Partner Modal -->
+    <div id="partnerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
-            <h3 class="text-lg font-bold mb-4">Add New Product</h3>
-            <form onsubmit="submitProduct(event)" class="space-y-4">
+            <h3 class="text-lg font-bold mb-3">➕ <span class="en-text">Register New Partner</span><span class="bn-text">নতুন পার্টনার নিবন্ধন করুন</span></h3>
+            <form onsubmit="submitPartner(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Product Description</label>
-                    <input type="text" id="prodNameInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Partner Commercial Name</span><span class="bn-text">পার্টনার কোম্পানির নাম</span></label>
+                    <input type="text" id="partnerNameInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Unit Price (৳)</label>
-                    <input type="number" step="0.01" id="prodPriceInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Classification Role</span><span class="bn-text">শ্রেণীবিভাগ ভূমিকা</span></label>
+                    <select id="partnerTypeInput" class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="customer" class="en-text">Customer Client (A/R)</option>
+                        <option value="customer" class="bn-text">গ্রাহক (প্রাপ্য হিসাব)</option>
+                        <option value="vendor" class="en-text">Supplier Vendor (A/P)</option>
+                        <option value="vendor" class="bn-text">সরবরাহকারী (প্রদেয় হিসাব)</option>
+                    </select>
                 </div>
                 <div class="flex justify-end gap-2 text-sm pt-2">
-                    <button type="button" onclick="closeModal('productModal')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium">Save Item</button>
+                    <button type="button" onclick="closeModal('partnerModal')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span class="en-text">Cancel</span><span class="bn-text">বাতিল</span></button>
+                    <button type="submit" class="px-4 py-2 bg-odoo text-white rounded-lg font-semibold"><span class="en-text">Post File</span><span class="bn-text">সংরক্ষণ করুন</span></button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Invoice Modal -->
     <div id="invoiceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
-            <h3 class="text-lg font-bold mb-4">Generate Sales Invoice</h3>
+            <h3 id="invoiceModalTitle" class="text-lg font-bold mb-2">Create Transactional Record</h3>
             <form onsubmit="submitInvoice(event)" class="space-y-4">
+                <input type="hidden" id="invoiceFlowType">
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Select Customer</label>
-                    <select id="invCustSelect" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-purple-500 outline-none"></select>
+                    <label id="invoicePartnerLabel" class="block text-xs font-semibold uppercase text-slate-400 mb-1">Select Associated Target Partner</label>
+                    <select id="invoicePartnerSelect" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 outline-none focus:ring-2 focus:ring-purple-500"></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Select Product</label>
-                    <select id="invProdSelect" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-purple-500 outline-none"></select>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Line Item Description</span><span class="bn-text">সারসংক্ষেপ বিবরণ</span></label>
+                    <input type="text" id="invoiceItemInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Quantity</label>
-                    <input type="number" id="invQtyInput" min="1" value="1" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent focus:ring-2 focus:ring-purple-500 outline-none">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Base Amount (৳ Price)</span><span class="bn-text">প্রাথমিক মূল্য (৳)</span></label>
+                        <input type="number" step="0.01" id="invoicePriceInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Quantity Metric</span><span class="bn-text">পরিমাণ</span></label>
+                        <input type="number" id="invoiceQtyInput" min="1" value="1" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                    </div>
                 </div>
-                <div class="bg-slate-50 dark:bg-slate-700/30 p-3 rounded-lg text-xs space-y-1 text-slate-500 dark:text-slate-400">
-                    <p>* Government structural VAT of 15% will be applied inside the general ledger automatically.</p>
+                <div class="bg-slate-50 dark:bg-slate-700/30 p-3 rounded-lg text-[11px] text-slate-400 space-y-1">
+                    <p>ℹ️ <span class="en-text">System Standard 15% VAT automatically computes into general ledger frameworks.</span><span class="bn-text">সিস্টেম স্ট্যান্ডার্ড ১৫% ভ্যাট স্বয়ংক্রিয়ভাবে জাবেদায় হিসাব করা হবে।</span></p>
                 </div>
                 <div class="flex justify-end gap-2 text-sm pt-2">
-                    <button type="button" onclick="closeModal('invoiceModal')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium">Post Invoice</button>
+                    <button type="button" onclick="closeModal('invoiceModal')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span class="en-text">Cancel</span><span class="bn-text">বাতিল</span></button>
+                    <button type="submit" id="invoiceSubmitBtn" class="px-4 py-2 bg-odoo text-white rounded-lg font-semibold"><span class="en-text">Post Operational Entry</span><span class="bn-text">অপারেশনাল এন্ট্রি পোস্ট করুন</span></button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Journal Modal -->
+    <div id="journalModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-bold mb-1">⚖️ <span class="en-text">Manual Double Journal Entry</span><span class="bn-text">ম্যানুয়াল জাবেদা এন্ট্রি</span></h3>
+            <form onsubmit="submitManualJournal(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Memo Reference</span><span class="bn-text">রেফারেন্স মেমো</span></label>
+                    <input type="text" id="journalRefInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-emerald-500 mb-1"><span class="en-text">Debit Account (Dr)</span><span class="bn-text">ডেবিট (Dr)</span></label>
+                        <select id="journalDebitSelect" class="w-full border dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-700 text-[10px]"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-rose-500 mb-1"><span class="en-text">Credit Account (Cr)</span><span class="bn-text">ক্রেডিট (Cr)</span></label>
+                        <select id="journalCreditSelect" class="w-full border dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-700 text-[10px]"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><span class="en-text">Value Amount (৳)</span><span class="bn-text">পরিমাণ (৳)</span></label>
+                    <input type="number" step="0.01" id="journalAmountInput" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                </div>
+                <div class="flex justify-end gap-2 text-sm pt-2">
+                    <button type="button" onclick="closeModal('journalModal')" class="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span class="en-text">Cancel</span><span class="bn-text">বাতিল</span></button>
+                    <button type="submit" class="px-4 py-2 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-900"><span class="en-text">Post Ledger Item</span><span class="bn-text">লেজার পোস্ট করুন</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Modal -->
+    <div id="resetModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-bold text-rose-600 mb-2">🚨 <span class="en-text">SYSTEM DATA WIPE</span><span class="bn-text">সিস্টেম ডেটা মুছুন</span></h3>
+            <p class="text-xs text-slate-500 mb-4"><span class="en-text">This will securely purge all transaction logs and contacts.</span><span class="bn-text">এটি সমস্ত লেনদেন লগ এবং পরিচিতি মুছে ফেলবে।</span></p>
+            <div class="flex justify-end gap-2 text-sm">
+                <button onclick="closeModal('resetModal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg font-semibold"><span class="en-text">Abort</span><span class="bn-text">বাতিল</span></button>
+                <button onclick="executeFactoryReset()" class="px-4 py-2 bg-rose-600 text-white font-semibold rounded-lg hover:bg-rose-700"><span class="en-text">Execute Factory Wipe</span><span class="bn-text">মুছে ফেলুন</span></button>
+            </div>
         </div>
     </div>
 
     <script>
-        // DB Schema Initialization with State Recovery
-        const DB = JSON.parse(localStorage.getItem("frontier_v3_adv") || JSON.stringify({
-            customers: [],
-            products: [],
-            invoices: [],
-            ledger: [],
-            revenue: 0,
-            audit: []
-        }));
-
-        function save() {
-            localStorage.setItem("frontier_v3_adv", JSON.stringify(DB));
-            render();
+        // Language Controller Engine
+        function setLanguage(lang) {
+            document.body.classList.remove('lang-en', 'lang-bn');
+            document.body.classList.add(`lang-${lang}`);
+            localStorage.setItem('frontier_erp_lang', lang);
+            
+            document.getElementById('btn-lang-en').className = lang === 'en' ? 'px-3 py-1.5 rounded-md text-xs font-bold bg-white text-odoo transition shadow-sm' : 'px-3 py-1.5 rounded-md text-xs font-bold text-white hover:bg-white/10 transition';
+            document.getElementById('btn-lang-bn').className = lang === 'bn' ? 'px-3 py-1.5 rounded-md text-xs font-bold bg-white text-odoo transition shadow-sm' : 'px-3 py-1.5 rounded-md text-xs font-bold text-white hover:bg-white/10 transition';
+        }
+        
+        // Dictionary for JS Generated Items
+        function t_coa(key) {
+            const dict = {
+                "101000 Cash and Liquidity Banks": "<span class='en-text'>101000 Cash and Liquidity Banks</span><span class='bn-text'>১০১০০০ নগদ এবং তারল্য ব্যাংক</span>",
+                "121000 Accounts Receivable (A/R)": "<span class='en-text'>121000 Accounts Receivable (A/R)</span><span class='bn-text'>১২১০০০ প্রাপ্য হিসাব (A/R)</span>",
+                "211000 Accounts Payable (A/P)": "<span class='en-text'>211000 Accounts Payable (A/P)</span><span class='bn-text'>২১১০০০ প্রদেয় হিসাব (A/P)</span>",
+                "220000 Collected VAT Payables": "<span class='en-text'>220000 Collected VAT Payables</span><span class='bn-text'>২২০০০০ সংগৃহীত ভ্যাট প্রদেয়</span>",
+                "400000 Corporate Sales Product Revenue": "<span class='en-text'>400000 Corporate Sales Product Revenue</span><span class='bn-text'>৪০০০০০ কর্পোরেট বিক্রয় আয়</span>",
+                "600000 Operating Costs & Supplier Expenses": "<span class='en-text'>600000 Operating Costs & Supplier Expenses</span><span class='bn-text'>৬০০০০০ পরিচালন ব্যয় এবং সরবরাহকারী খরচ</span>",
+                "300000 Retained Capital Business Equity": "<span class='en-text'>300000 Retained Capital Business Equity</span><span class='bn-text'>৩০০০০০ সংরক্ষিত মূলধন ব্যবসায়িক ইক্যুইটি</span>"
+            };
+            return dict[key] || key;
         }
 
-        function money(v) {
-            return "৳" + Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const systemAccountsBlueprint = {
+            "101000 Cash and Liquidity Banks": 0,
+            "121000 Accounts Receivable (A/R)": 0,
+            "211000 Accounts Payable (A/P)": 0,
+            "220000 Collected VAT Payables": 0,
+            "400000 Corporate Sales Product Revenue": 0,
+            "600000 Operating Costs & Supplier Expenses": 0,
+            "300000 Retained Capital Business Equity": 0
+        };
+
+        let DB = JSON.parse(localStorage.getItem("frontier_erp_v4")) || { account: null, partners: [], transactions: [], journalLines: [], audit: [] };
+
+        function saveState() {
+            localStorage.setItem("frontier_erp_v4", JSON.stringify(DB));
+            recomputeAndRender();
         }
 
-        function audit(msg) {
-            DB.audit.unshift({ date: new Date().toLocaleTimeString(), msg });
+        function formatMoney(val) {
+            return "৳" + Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        // Modals Engine
-        function openModal(id) {
-            document.getElementById(id).classList.remove('hidden');
+        // Dual-Language Audit Push
+        function pushAudit(en_text, bn_text) {
+            DB.audit.unshift({ 
+                time: new Date().toLocaleTimeString(), 
+                text: `<span class="en-text">${en_text}</span><span class="bn-text">${bn_text}</span>` 
+            });
         }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('border-odoo', 'text-odoo', 'font-bold'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if(activeBtn) activeBtn.classList.add('border-odoo', 'text-odoo', 'font-bold');
         }
 
-        function openInvoiceModal() {
-            if (!DB.customers.length || !DB.products.length) {
-                alert("ERP Constraint: Please register at least one Customer and Product before processing an invoice.");
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function submitAccount(e) {
+            e.preventDefault();
+            DB.account = { admin: document.getElementById('accAdminInput').value.trim(), biz: document.getElementById('accBizInput').value.trim() };
+            pushAudit(`System profile updated to: ${DB.account.biz}`, `সিস্টেম প্রোফাইল আপডেট করা হয়েছে: ${DB.account.biz}`);
+            closeModal('accountModal');
+            saveState();
+        }
+
+        function executeFactoryReset() {
+            DB = { account: null, partners: [], transactions: [], journalLines: [], audit: [] };
+            localStorage.removeItem("frontier_erp_v4");
+            pushAudit("Database wiped.", "ডেটাবেস মুছে ফেলা হয়েছে।");
+            closeModal('resetModal');
+            saveState();
+            location.reload();
+        }
+
+        function submitPartner(e) {
+            e.preventDefault();
+            const name = document.getElementById('partnerNameInput').value.trim();
+            const type = document.getElementById('partnerTypeInput').value;
+            const partnerId = (type === 'customer' ? 'CUST-' : 'VEND-') + Date.now().toString().slice(-4);
+            DB.partners.push({ id: partnerId, name, type });
+            pushAudit(`Created Partner: ${name}`, `নতুন পার্টনার তৈরি করা হয়েছে: ${name}`);
+            document.getElementById('partnerNameInput').value = '';
+            closeModal('partnerModal');
+            saveState();
+        }
+
+        function deletePartner(id) {
+            const index = DB.partners.findIndex(p => p.id === id);
+            if (index > -1) {
+                pushAudit(`Removed partner: ${DB.partners[index].name}`, `পার্টনার মুছে ফেলা হয়েছে: ${DB.partners[index].name}`);
+                DB.partners.splice(index, 1);
+                saveState();
+            }
+        }
+
+        function openInvoiceModal(type) {
+            const filteredPartners = DB.partners.filter(p => p.type === type);
+            if (!filteredPartners.length) {
+                alert("ERP Constraint: Please create a partner for this role first.");
                 return;
             }
-            
-            const custSelect = document.getElementById('invCustSelect');
-            custSelect.innerHTML = DB.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            
-            const prodSelect = document.getElementById('invProdSelect');
-            prodSelect.innerHTML = DB.products.map(p => `<option value="${p.id}">${p.name} (${money(p.price)})</option>`).join('');
-            
+            document.getElementById('invoiceFlowType').value = type;
+            const title = document.getElementById('invoiceModalTitle');
+            const label = document.getElementById('invoicePartnerLabel');
+            const submitBtn = document.getElementById('invoiceSubmitBtn');
+            const partnerSelect = document.getElementById('invoicePartnerSelect');
+
+            partnerSelect.innerHTML = filteredPartners.map(p => `<option value="${p.name}">${p.name} [${p.id}]</option>`).join('');
+
+            if(type === 'customer') {
+                title.innerHTML = "🧾 <span class='en-text'>Customer Invoice Entry</span><span class='bn-text'>গ্রাহক ইনভয়েস এন্ট্রি</span>";
+                label.innerHTML = "<span class='en-text'>Select Target Customer</span><span class='bn-text'>গ্রাহক নির্বাচন করুন</span>";
+                submitBtn.className = "px-4 py-2 bg-odoo text-white rounded-lg font-semibold hover:bg-odooDark";
+            } else {
+                title.innerHTML = "🛒 <span class='en-text'>Record Vendor Bill</span><span class='bn-text'>সরবরাহকারী বিল রেকর্ড</span>";
+                label.innerHTML = "<span class='en-text'>Select Vendor/Supplier</span><span class='bn-text'>সরবরাহকারী নির্বাচন করুন</span>";
+                submitBtn.className = "px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700";
+            }
             openModal('invoiceModal');
-        }
-
-        // Form Pipelines
-        function submitCustomer(e) {
-            e.preventDefault();
-            const input = document.getElementById('custNameInput');
-            DB.customers.push({ id: 'CUST-' + Date.now(), name: input.value.trim() });
-            audit(`Registered Client: "${input.value.trim()}"`);
-            input.value = '';
-            closeModal('customerModal');
-            save();
-        }
-
-        function submitProduct(e) {
-            e.preventDefault();
-            const nameInput = document.getElementById('prodNameInput');
-            const priceInput = document.getElementById('prodPriceInput');
-            DB.products.push({
-                id: 'PROD-' + Date.now(),
-                name: nameInput.value.trim(),
-                price: parseFloat(priceInput.value) || 0
-            });
-            audit(`Added Inventory Stock Item: "${nameInput.value.trim()}"`);
-            nameInput.value = '';
-            priceInput.value = '';
-            closeModal('productModal');
-            save();
         }
 
         function submitInvoice(e) {
             e.preventDefault();
-            const customerId = document.getElementById('invCustSelect').value;
-            const productId = document.getElementById('invProdSelect').value;
-            const qty = parseInt(document.getElementById('invQtyInput').value) || 1;
+            const type = document.getElementById('invoiceFlowType').value;
+            const partnerName = document.getElementById('invoicePartnerSelect').value;
+            const item = document.getElementById('invoiceItemInput').value.trim();
+            const basePrice = parseFloat(document.getElementById('invoicePriceInput').value) || 0;
+            const qty = parseInt(document.getElementById('invoiceQtyInput').value) || 1;
 
-            const targetCustomer = DB.customers.find(c => c.id === customerId);
-            const targetProduct = DB.products.find(p => p.id === productId);
+            const subtotal = basePrice * qty;
+            const vatVal = subtotal * 0.15;
+            const docId = (type === 'customer' ? 'INV-' : 'BILL-') + Date.now().toString().slice(-5);
 
-            const subtotal = targetProduct.price * qty;
-            const vat = subtotal * 0.15;
-            const total = subtotal + vat;
-
-            const invId = "INV-" + Date.now().toString().slice(-6);
-
-            const inv = {
-                id: invId,
-                customer: targetCustomer.name,
-                item: `${targetProduct.name} x ${qty}`,
-                total: total,
-                status: 'Unpaid'
-            };
-
-            DB.invoices.unshift(inv);
-            DB.revenue += total;
-
-            // Accounting Postings
-            DB.ledger.unshift({ account: `Accounts Receivable (${invId})`, debit: total, credit: 0 });
-            DB.ledger.unshift({ account: `Sales Revenue (${invId})`, debit: 0, credit: subtotal });
-            DB.ledger.unshift({ account: `VAT Payable (${invId})`, debit: 0, credit: vat });
-
-            audit(`Dispatched Invoice ${invId} to ${targetCustomer.name}`);
+            const txDoc = { id: docId, type, partner: partnerName, item: `${item} (x${qty})`, amount: subtotal + vatVal, subtotal, vat: vatVal, status: 'Open' };
+            DB.transactions.unshift(txDoc);
+            pushAudit(`Drafted document ${docId}`, `খসড়া ডকুমেন্ট তৈরি হয়েছে ${docId}`);
+            
+            postDocumentToLedger(txDoc);
             closeModal('invoiceModal');
-            save();
+            saveState();
         }
 
-        // Ledger Processing Mutation Features
-        function markAsPaid(invoiceId) {
-            const inv = DB.invoices.find(i => i.id === invoiceId);
-            if (inv && inv.status === 'Unpaid') {
-                inv.status = 'Paid';
-                
-                // Clear Accounts Receivable asset and increase actual liquid Cash balance
-                DB.ledger.unshift({ account: `Cash/Bank Clearing (${invoiceId})`, debit: inv.total, credit: 0 });
-                DB.ledger.unshift({ account: `Accounts Receivable (${invoiceId})`, debit: 0, credit: inv.total });
-                
-                audit(`Payment settlement finalized for Invoice ${invoiceId}`);
-                save();
+        function postDocumentToLedger(doc) {
+            const dateStr = new Date().toLocaleDateString();
+            doc.status = 'Posted';
+            if(doc.type === 'customer') {
+                DB.journalLines.push({ date: dateStr, ref: doc.id, account: "121000 Accounts Receivable (A/R)", debit: doc.amount, credit: 0 });
+                DB.journalLines.push({ date: dateStr, ref: doc.id, account: "400000 Corporate Sales Product Revenue", debit: 0, credit: doc.subtotal });
+                DB.journalLines.push({ date: dateStr, ref: doc.id, account: "220000 Collected VAT Payables", debit: 0, credit: doc.vat });
+                pushAudit(`Ledger entries posted for ${doc.id}`, `জাবেদা পোস্টিং সম্পন্ন হয়েছে ${doc.id}`);
+            } else {
+                DB.journalLines.push({ date: dateStr, ref: doc.id, account: "600000 Operating Costs & Supplier Expenses", debit: doc.subtotal, credit: 0 });
+                DB.journalLines.push({ date: dateStr, ref: doc.id, account: "220000 Collected VAT Payables", debit: doc.vat, credit: 0 }); 
+                DB.journalLines.push({ date: dateStr, ref: doc.id, account: "211000 Accounts Payable (A/P)", debit: 0, credit: doc.amount });
+                pushAudit(`Bill ledger entries posted for ${doc.id}`, `বিল জাবেদা পোস্টিং সম্পন্ন হয়েছে ${doc.id}`);
             }
         }
 
-        function deleteCustomer(id) {
-            const index = DB.customers.findIndex(c => c.id === id);
-            if (index > -1) {
-                audit(`Purged client entity record: ${DB.customers[index].name}`);
-                DB.customers.splice(index, 1);
-                save();
+        function settlePaymentGateway(docId) {
+            const doc = DB.transactions.find(t => t.id === docId);
+            if (!doc || doc.status === 'Cleared') return;
+            const dateStr = new Date().toLocaleDateString();
+            doc.status = 'Cleared';
+
+            if(doc.type === 'customer') {
+                DB.journalLines.push({ date: dateStr, ref: `PAY-${docId}`, account: "101000 Cash and Liquidity Banks", debit: doc.amount, credit: 0 });
+                DB.journalLines.push({ date: dateStr, ref: `PAY-${docId}`, account: "121000 Accounts Receivable (A/R)", debit: 0, credit: doc.amount });
+                pushAudit(`Payment cleared for ${docId}`, `পেমেন্ট সম্পন্ন হয়েছে ${docId}`);
+            } else {
+                DB.journalLines.push({ date: dateStr, ref: `PAY-${docId}`, account: "211000 Accounts Payable (A/P)", debit: doc.amount, credit: 0 });
+                DB.journalLines.push({ date: dateStr, ref: `PAY-${docId}`, account: "101000 Cash and Liquidity Banks", debit: 0, credit: doc.amount });
+                pushAudit(`Bill disbursed for ${docId}`, `বিলের অর্থ প্রদান করা হয়েছে ${docId}`);
+            }
+            saveState();
+        }
+
+        function submitManualJournal(e) {
+            e.preventDefault();
+            const ref = "MANUAL-" + document.getElementById('journalRefInput').value.trim();
+            const drAcc = document.getElementById('journalDebitSelect').value;
+            const crAcc = document.getElementById('journalCreditSelect').value;
+            const amt = parseFloat(document.getElementById('journalAmountInput').value) || 0;
+            const dateStr = new Date().toLocaleDateString();
+
+            if (drAcc === crAcc) { alert("Debit and Credit accounts must be different."); return; }
+
+            DB.journalLines.push({ date: dateStr, ref, account: drAcc, debit: amt, credit: 0 });
+            DB.journalLines.push({ date: dateStr, ref, account: crAcc, debit: 0, credit: amt });
+            pushAudit(`Manual journal ${ref} posted.`, `ম্যানুয়াল জাবেদা ${ref} পোস্ট করা হয়েছে।`);
+            closeModal('journalModal');
+            saveState();
+        }
+
+        function recomputeAndRender() {
+            if (DB.account) {
+                document.getElementById('headerAccountName').innerHTML = `<span class="en-text">Active Profile: <b>${DB.account.biz}</b> (Admin: ${DB.account.admin})</span><span class="bn-text">অ্যাক্টিভ প্রোফাইল: <b>${DB.account.biz}</b> (অ্যাডমিন: ${DB.account.admin})</span>`;
+            }
+
+            const accountsKeys = Object.keys(systemAccountsBlueprint);
+            const coaOptionsHTML = accountsKeys.map(k => `<option value="${k}">${k}</option>`).join('');
+            document.getElementById('journalDebitSelect').innerHTML = coaOptionsHTML;
+            document.getElementById('journalCreditSelect').innerHTML = coaOptionsHTML;
+
+            let balances = structuredClone(systemAccountsBlueprint);
+            DB.journalLines.forEach(ln => {
+                if(balances[ln.account] !== undefined) {
+                    if (ln.account.startsWith("101000") || ln.account.startsWith("121000") || ln.account.startsWith("600000")) {
+                        balances[ln.account] += (ln.debit - ln.credit);
+                    } else {
+                        balances[ln.account] += (ln.credit - ln.debit);
+                    }
+                }
+            });
+
+            document.getElementById('statCash').innerText = formatMoney(balances["101000 Cash and Liquidity Banks"]);
+            document.getElementById('statAR').innerText = formatMoney(balances["121000 Accounts Receivable (A/R)"]);
+            document.getElementById('statAP').innerText = formatMoney(balances["211000 Accounts Payable (A/P)"]);
+            document.getElementById('statRevenue').innerText = formatMoney(balances["400000 Corporate Sales Product Revenue"]);
+
+            document.getElementById('dashboardAuditLogs').innerHTML = DB.audit.length ? DB.audit.map(a => `
+                <div class="p-1 border-b border-slate-100 dark:border-slate-800 text-[11px]"><span class="text-slate-400">[${a.time}]</span> ${a.text}</div>
+            `).join("") : `<div class="text-slate-400 italic text-center py-4"><span class="en-text">No logged operations.</span><span class="bn-text">কোনো লগ নেই।</span></div>`;
+
+            // UI Tables
+            document.getElementById('partnersTableBody').innerHTML = DB.partners.map(p => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20">
+                    <td class="p-3 font-bold text-slate-400">${p.id}</td><td class="p-3 font-semibold text-sm">${p.name}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-200 dark:bg-slate-700">
+                        ${p.type === 'customer' ? '<span class="en-text text-purple-600">Customer</span><span class="bn-text text-purple-600">গ্রাহক</span>' : '<span class="en-text text-emerald-600">Vendor</span><span class="bn-text text-emerald-600">সরবরাহকারী</span>'}
+                    </span></td>
+                    <td class="p-3 text-right"><button onclick="deletePartner('${p.id}')" class="text-xs font-semibold text-rose-500 hover:underline"><span class="en-text">Purge</span><span class="bn-text">মুছুন</span></button></td>
+                </tr>`).join('');
+
+            document.getElementById('salesTableBody').innerHTML = DB.transactions.filter(t => t.type === 'customer').map(s => {
+                const paid = s.status === 'Cleared';
+                return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20 text-xs">
+                    <td class="p-3 font-bold text-slate-400">${s.id}</td><td class="p-3 font-semibold">${s.partner}</td><td class="p-3">${s.item}</td>
+                    <td class="p-3 font-bold text-sm">${formatMoney(s.amount)}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800">${paid ? '<span class="en-text text-emerald-500">Cleared</span><span class="bn-text text-emerald-500">পরিশোধিত</span>' : '<span class="en-text text-amber-500">Open</span><span class="bn-text text-amber-500">বাকি</span>'}</span></td>
+                    <td class="p-3 text-right">${!paid ? `<button onclick="settlePaymentGateway('${s.id}')" class="bg-odoo text-white px-2.5 py-1 rounded font-semibold text-[11px]"><span class="en-text">Receive</span><span class="bn-text">জমা নিন</span></button>` : `<span class="text-emerald-500 font-bold"><span class="en-text">✓ Deposited</span><span class="bn-text">✓ জমা হয়েছে</span></span>`}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('purchaseTableBody').innerHTML = DB.transactions.filter(t => t.type === 'vendor').map(b => {
+                const paid = b.status === 'Cleared';
+                return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20 text-xs">
+                    <td class="p-3 font-bold text-slate-400">${b.id}</td><td class="p-3 font-semibold">${b.partner}</td><td class="p-3">${b.item}</td>
+                    <td class="p-3 font-bold text-sm">${formatMoney(b.amount)}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800">${paid ? '<span class="en-text text-emerald-500">Cleared</span><span class="bn-text text-emerald-500">পরিশোধিত</span>' : '<span class="en-text text-amber-500">Open</span><span class="bn-text text-amber-500">বাকি</span>'}</span></td>
+                    <td class="p-3 text-right">${!paid ? `<button onclick="settlePaymentGateway('${b.id}')" class="bg-slate-700 text-white px-2.5 py-1 rounded font-semibold text-[11px]"><span class="en-text">Disburse</span><span class="bn-text">পরিশোধ করুন</span></button>` : `<span class="text-slate-400 font-bold"><span class="en-text">✓ Paid</span><span class="bn-text">✓ পরিশোধিত</span></span>`}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('journalLedgerTableBody').innerHTML = DB.journalLines.slice().reverse().map(j => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20">
+                    <td class="p-3 text-[11px]"><b>${j.ref}</b><br><span class="text-[9px] text-slate-400">${j.date}</span></td>
+                    <td class="p-3 text-xs font-medium">${t_coa(j.account)}</td>
+                    <td class="p-3 text-emerald-600 font-bold">${j.debit > 0 ? formatMoney(j.debit) : '-'}</td>
+                    <td class="p-3 text-rose-500 font-bold">${j.credit > 0 ? formatMoney(j.credit) : '-'}</td>
+                </tr>`).join('');
+
+            document.getElementById('chartOfAccountsContainer').innerHTML = Object.keys(balances).map(key => `
+                <div class="py-2.5 flex justify-between items-center">
+                    <span class="font-medium">${t_coa(key)}</span>
+                    <span class="font-bold font-mono text-sm ${balances[key] >= 0 ? 'text-slate-800 dark:text-white' : 'text-rose-500'}">${formatMoney(balances[key])}</span>
+                </div>`).join('');
+
+            // Reporting Calcs
+            const revVal = balances["400000 Corporate Sales Product Revenue"];
+            const expVal = balances["600000 Operating Costs & Supplier Expenses"];
+            document.getElementById('plRevenue').innerText = formatMoney(revVal);
+            document.getElementById('plExpense').innerText = formatMoney(expVal);
+            
+            const netVal = revVal - expVal;
+            const plProfitNode = document.getElementById('plNetProfit');
+            plProfitNode.innerText = formatMoney(netVal);
+            plProfitNode.className = `text-lg font-black ${netVal >= 0 ? 'text-emerald-600' : 'text-rose-500'}`;
+
+            const cashVal = balances["101000 Cash and Liquidity Banks"];
+            const arVal = balances["121000 Accounts Receivable (A/R)"];
+            document.getElementById('bsCash').innerText = formatMoney(cashVal);
+            document.getElementById('bsAR').innerText = formatMoney(arVal);
+            const totalAssets = cashVal + arVal;
+            document.getElementById('bsTotalAssets').innerText = formatMoney(totalAssets);
+
+            const apVal = balances["211000 Accounts Payable (A/P)"];
+            const vatVal = balances["220000 Collected VAT Payables"];
+            document.getElementById('bsAP').innerText = formatMoney(apVal);
+            document.getElementById('bsVAT').innerText = formatMoney(vatVal);
+            
+            const eqVal = balances["300000 Retained Capital Business Equity"] + netVal;
+            document.getElementById('bsEquity').innerText = formatMoney(eqVal);
+            const totalLiabilities = apVal + vatVal + eqVal;
+            document.getElementById('bsTotalLiabilities').innerText = formatMoney(totalLiabilities);
+
+            const eqNode = document.getElementById('bsEquationCheck');
+            if(Math.abs(totalAssets - totalLiabilities) < 0.01) {
+                eqNode.innerHTML = "<span class='en-text'>✓ Audited: Balanced (Assets = Liabilities + Equity)</span><span class='bn-text'>✓ অডিট সফল: ভারসাম্যপূর্ণ (সম্পদ = দায় + ইক্যুইটি)</span>";
+                eqNode.className = "bg-emerald-50 dark:bg-emerald-950/20 p-2.5 rounded-lg text-center text-xs font-bold font-mono text-emerald-600 border border-emerald-500/20";
+            } else {
+                eqNode.innerHTML = "<span class='en-text'>⚠️ Imbalance Detected! Check Journal Lines</span><span class='bn-text'>⚠️ ভারসাম্যহীনতা সনাক্ত করা হয়েছে! জাবেদা চেক করুন</span>";
+                eqNode.className = "bg-rose-50 dark:bg-rose-950/20 p-2.5 rounded-lg text-center text-xs font-bold font-mono text-rose-600 border border-rose-500/20";
             }
         }
 
-        function deleteProduct(id) {
-            const index = DB.products.findIndex(p => p.id === id);
-            if (index > -1) {
-                audit(`Purged structural product inventory line item: ${DB.products[index].name}`);
-                DB.products.splice(index, 1);
-                save();
-            }
-        }
-
-        // Core Realtime Matrix UI Engine Update
-        function render() {
-            document.getElementById('custCount').innerText = DB.customers.length;
-            document.getElementById('prodCount').innerText = DB.products.length;
-            document.getElementById('invCount').innerText = DB.invoices.length;
-            document.getElementById('revenue').innerText = money(DB.revenue);
-
-            // Customers Engine
-            document.getElementById('customers').innerHTML = DB.customers.map(c => `
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
-                    <td class="p-3 font-medium">${c.name}</td>
-                    <td class="p-3 text-right">
-                        <button onclick="deleteCustomer('${c.id}')" class="text-xs font-semibold text-rose-500 hover:underline">Remove</button>
-                    </td>
-                </tr>
-            `).join("");
-
-            // Products Engine
-            document.getElementById('products').innerHTML = DB.products.map(p => `
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
-                    <td class="p-3 font-medium">${p.name}</td>
-                    <td class="p-3 text-slate-500">${money(p.price)}</td>
-                    <td class="p-3 text-right">
-                        <button onclick="deleteProduct('${p.id}')" class="text-xs font-semibold text-rose-500 hover:underline">Remove</button>
-                    </td>
-                </tr>
-            `).join("");
-
-            // Invoices Engine
-            document.getElementById('invoices').innerHTML = DB.invoices.map(i => {
-                const badgeColor = i.status === 'Paid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
-                const actionBtn = i.status === 'Unpaid' ? `<button onclick="markAsPaid('${i.id}')" class="bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-600 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-2.5 py-1 rounded text-xs font-semibold transition shadow-sm">Receive Payment</button>` : `<span class="text-xs font-semibold text-emerald-500 flex items-center justify-end gap-1">✓ Cleared</span>`;
-                
-                return `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
-                        <td class="p-3 font-bold text-slate-400">${i.id}</td>
-                        <td class="p-3 font-medium">${i.customer}</td>
-                        <td class="p-3 text-xs text-slate-500">${i.item}</td>
-                        <td class="p-3 font-semibold">${money(i.total)}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${badgeColor}">${i.status}</span></td>
-                        <td class="p-3 text-right">${actionBtn}</td>
-                    </tr>
-                `;
-            }).join("");
-
-            // Accounting Postings General Ledger UI Engine
-            document.getElementById('ledger').innerHTML = DB.ledger.map(l => `
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition font-mono text-xs">
-                    <td class="p-3 font-sans text-sm font-medium">${l.account}</td>
-                    <td class="p-3 text-emerald-600 font-semibold">${l.debit > 0 ? money(l.debit) : '-'}</td>
-                    <td class="p-3 text-rose-600 font-semibold">${l.credit > 0 ? money(l.credit) : '-'}</td>
-                </tr>
-            `).join("");
-
-            // System Logs View Frame Pipeline
-            document.getElementById('auditTrail').innerHTML = DB.audit.length ? DB.audit.map(a => `
-                <div class="p-2 border-b border-slate-100 dark:border-slate-700 last:border-0 leading-relaxed">
-                    <span class="text-slate-400 font-sans">[${a.date}]</span> ${a.msg}
-                </div>
-            `).join("") : `<div class="text-slate-400 italic text-center p-4">No logged occurrences.</div>`;
-        }
-
-        // --- NEW: PDF Export Logic ---
-        function exportPDF() {
-            if (DB.invoices.length === 0) {
-                alert("No invoices available to export.");
-                return;
-            }
-
+        function exportPDF(type) {
+            // Note: PDF library defaults to English Strings to ensure standard font compliance rendering
+            const records = DB.transactions.filter(t => t.type === type);
+            if (records.length === 0) return;
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
-            // Document Title
-            doc.setFontSize(18);
-            doc.text("Frontier Accounting - Billing & Invoice Report", 14, 22);
-            doc.setFontSize(10);
-            doc.setTextColor(100);
-            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-
-            // Setup Table Columns & Rows
-            const tableColumns = ["Invoice ID", "Client Name", "Item Details", "Gross Total", "Status"];
-            const tableRows = [];
-
-            DB.invoices.forEach(inv => {
-                const invoiceData = [
-                    inv.id,
-                    inv.customer,
-                    inv.item,
-                    money(inv.total),
-                    inv.status
-                ];
-                tableRows.push(invoiceData);
-            });
-
-            // Generate Table
+            doc.setFontSize(16);
+            doc.text(`${DB.account ? DB.account.biz : "Frontier Enterprise"} - ${type === 'customer' ? 'Sales Invoices Log' : 'Purchases & Expenses Log'}`, 14, 20);
+            doc.setFontSize(9);
+            doc.text(`Export Timestamp: ${new Date().toLocaleString()}`, 14, 26);
             doc.autoTable({
-                head: [tableColumns],
-                body: tableRows,
-                startY: 36,
-                theme: 'grid',
-                headStyles: { fillColor: [225, 29, 72] }, // Match rose-600 button theme
-                styles: { fontSize: 9, cellPadding: 3 }
+                head: [["Reference", "Partner Name", "Description Specs", "Gross Amount Value", "Book Status"]],
+                body: records.map(r => [r.id, r.partner, r.item, formatMoney(r.amount), r.status]),
+                startY: 32, theme: 'grid', headStyles: { fillColor: type === 'customer' ? [113, 75, 103] : [5, 150, 105] }, styles: { fontSize: 8 }
             });
-
-            // Save the PDF
-            doc.save(`Invoices_Report_${Date.now()}.pdf`);
-            
-            // Log to Audit Trail
-            audit("Exported Invoices and Billings to PDF document.");
-            render();
+            doc.save(`${type}_Ledger_Report_${Date.now().toString().slice(-4)}.pdf`);
         }
 
-        // System Environment Dark Customization Modifiers
         function toggleDark() {
             document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            localStorage.setItem('frontier_dark_theme', isDark ? 'enabled' : 'disabled');
+            localStorage.setItem('frontier_erp_theme', document.documentElement.classList.contains('dark') ? 'enabled' : 'disabled');
         }
 
-        // Bootstrapping Engine Initialization Procedures
-        if (localStorage.getItem('frontier_dark_theme') === 'enabled') {
-            document.documentElement.classList.add('dark');
-        }
-        
-        render();
+        // Init Sequence
+        if (localStorage.getItem('frontier_erp_theme') === 'enabled') document.documentElement.classList.add('dark');
+        const savedLang = localStorage.getItem('frontier_erp_lang') || 'en';
+        setLanguage(savedLang);
+        switchTab('dashboard');
+        recomputeAndRender();
+        if (!DB.account) setTimeout(() => { openModal('accountModal') }, 600);
     </script>
 </body>
 </html>
