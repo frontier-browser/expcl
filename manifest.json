@@ -7,10 +7,11 @@
   "theme_color": "#3b82f6",
   "description": "Secure Financial Core v5.0",
   "icons": [
-  {
-    "src": "./icon.png",
-    "sizes": "192x192 512x512",
-    "type": "image/svg+xml",
-    "purpose": "any maskable"
-  }
-]
+    {
+      "src": "./icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
