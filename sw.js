@@ -1,4 +1,4 @@
-const CACHE_NAME = 'frontier-erp-cache-v1';
+const CACHE_NAME = 'frontier-erp-v5-cache-v2';
 
 // External assets and core app files to cache for offline use
 const ASSETS_TO_CACHE = [
