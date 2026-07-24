@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontier Enterprise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- Fixed: Moved link and meta tags outside the script block -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/F_icon.svg/512px-F_icon.svg.png">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        odoo: '#3b82f6', // Accent Blue
+                        odooDark: '#2563eb'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Auth Gateway Overrides */
+        .auth-view { display: none; }
+        .auth-view.active { display: block; }
+
+        /* RTL Layout Support */
+        .rtl-layout { direction: rtl; }
+        .rtl-layout th, .rtl-layout td { text-align: right; }
+        .rtl-layout .flex-row-reverse-rtl { flex-direction: row-reverse; }
+        .rtl-layout .ml-auto-rtl { margin-right: auto; margin-left: 0; }
+        .rtl-layout .mr-auto-rtl { margin-left: auto; margin-right: 0; }
+        .rtl-layout .text-right-rtl { text-align: left; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen">
+
+    <div id="auth-gateway" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            
+            <div id="view-login" class="auth-view active">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400">Frontier Enterprise</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Secure Financial Core v5.0</p>
+                </div>
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Username</label>
+                        <input type="text" id="login-name" class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Password</label>
+                        <input type="password" id="login-pass" class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition">Secure Login</button>
+                </form>
+                <div class="mt-6 border-t dark:border-slate-700 pt-4 text-center">
+                    <p class="text-sm text-slate-500">New institution?</p>
+                    <button onclick="switchAuthView('view-signup')" class="mt-2 w-full border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold py-2 rounded-lg transition">Create New Account</button>
+                </div>
+            </div>
+
+            <div id="view-signup" class="auth-view">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400">Register Tenant</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Initialize isolated ERP database</p>
+                </div>
+                <form onsubmit="handleSignup(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Admin Username</label>
+                        <input type="text" id="reg-name" class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Business/Institution Name</label>
+                        <input type="text" id="reg-inst-name" class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Master Password</label>
+                        <input type="password" id="reg-pass" class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-slate-50 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition">Deploy Database</button>
+                    <button type="button" onclick="switchAuthView('view-login')" class="w-full border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold py-2 rounded-lg transition">Back to Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-dashboard" class="hidden">
+        
+        <div class="bg-blue-600 dark:bg-slate-800 text-white p-4 flex flex-wrap justify-between items-center shadow-md border-b border-blue-900/30 gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-white p-1.5 rounded-lg shadow-inner text-blue-600 font-black text-xl px-2">F</div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-tight flex items-center gap-2" data-i18n="app_title">Frontier Enterprise v5.0</h1>
+                    <p class="text-xs text-blue-200 dark:text-slate-400 mt-0.5">
+                        <span id="ui-inst-name" class="font-bold text-white"></span> | Admin: <span id="ui-user-name"></span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-black/20 dark:bg-slate-900 border border-transparent hover:border-white/30 rounded-lg text-xs font-bold px-2 py-1.5 outline-none cursor-pointer">
+                    <option value="en" class="text-black">EN (UK)</option>
+                    <option value="bn" class="text-black">বাংলা (BD)</option>
+                    <option value="es" class="text-black">Español (ES)</option>
+                    <option value="ar" class="text-black">العربية (AE)</option>
+                    <option value="ja" class="text-black">日本語 (JP)</option>
+                </select>
+                <select id="currency-select" onchange="changeCurrency(this.value)" class="bg-black/20 dark:bg-slate-900 border border-transparent hover:border-white/30 rounded-lg text-xs font-bold px-2 py-1.5 outline-none cursor-pointer">
+                    <option value="USD" class="text-black">USD ($)</option>
+                    <option value="BDT" class="text-black">BDT (৳)</option>
+                    <option value="EUR" class="text-black">EUR (€)</option>
+                    <option value="GBP" class="text-black">GBP (£)</option>
+                    <option value="JPY" class="text-black">JPY (¥)</option>
+                </select>
+                <div class="w-px h-6 bg-white/20 mx-1"></div>
+                <button onclick="toggleDark()" class="bg-black/20 hover:bg-black/30 p-2 rounded-lg text-xs transition">🌙</button>
+                <button onclick="logout()" class="bg-rose-600 hover:bg-rose-700 px-3 py-1.5 rounded-lg text-xs font-medium transition" data-i18n="btn_logout">Sign Out</button>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-40 overflow-x-auto">
+            <div class="max-w-7xl mx-auto flex flex-nowrap gap-1 px-4 min-w-max">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-blue-600 transition flex items-center gap-2">
+                    📊 <span data-i18n="tab_dashboard">Dashboard</span>
+                </button>
+                <button onclick="switchTab('partners')" id="btn-partners" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-blue-600 transition flex items-center gap-2">
+                    👥 <span data-i18n="tab_contacts">Contacts</span>
+                </button>
+                <button onclick="switchTab('sales')" id="btn-sales" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-blue-600 transition flex items-center gap-2">
+                    🧾 <span data-i18n="tab_sales">Sales (A/R)</span>
+                </button>
+                <button onclick="switchTab('purchases')" id="btn-purchases" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-blue-600 transition flex items-center gap-2">
+                    🛒 <span data-i18n="tab_purchases">Purchases (A/P)</span>
+                </button>
+                <button onclick="switchTab('accounting')" id="btn-accounting" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-blue-600 transition flex items-center gap-2">
+                    ⚖️ <span data-i18n="tab_accounting">Journal & Ledger</span>
+                </button>
+                <button onclick="switchTab('reporting')" id="btn-reporting" class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-blue-600 transition flex items-center gap-2">
+                    📈 <span data-i18n="tab_reports">Reports</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6 max-w-7xl mx-auto space-y-6">
+
+            <div id="tab-dashboard" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs uppercase font-semibold text-slate-400" data-i18n="cash_balance">Liquid Cash</p>
+                        <div id="statCash" class="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">0.00</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs uppercase font-semibold text-slate-400" data-i18n="ar_balance">Accounts Receivable</p>
+                        <div id="statAR" class="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">0.00</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs uppercase font-semibold text-slate-400" data-i18n="ap_balance">Accounts Payable</p>
+                        <div id="statAP" class="text-2xl font-bold mt-1 text-rose-600 dark:text-rose-400">0.00</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs uppercase font-semibold text-slate-400" data-i18n="net_revenue">Net Revenue</p>
+                        <div id="statRevenue" class="text-2xl font-bold mt-1">0.00</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                        <h3 class="font-bold text-md border-b pb-2 border-slate-100 dark:border-slate-700">⚡ <span data-i18n="quick_ops">Quick Operations</span></h3>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button onclick="openModal('partnerModal')" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 p-3 rounded-lg text-left text-xs font-semibold transition flex justify-between">
+                                <span data-i18n="btn_add_contact">➕ Add New Contact</span> ➡️
+                            </button>
+                            <button onclick="openInvoiceModal('customer')" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg text-left text-xs font-semibold transition flex justify-between">
+                                <span data-i18n="btn_add_invoice">🧾 Issue Sales Invoice</span> ➡️
+                            </button>
+                            <button onclick="openInvoiceModal('vendor')" class="bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg text-left text-xs font-semibold transition flex justify-between">
+                                <span data-i18n="btn_add_bill">🛒 Record Vendor Bill</span> ➡️
+                            </button>
+                            <button onclick="openModal('journalModal')" class="bg-slate-800 hover:bg-slate-900 text-white p-3 rounded-lg text-left text-xs font-semibold transition flex justify-between">
+                                <span data-i18n="btn_add_journal">⚖️ Post Manual Journal</span> ➡️
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 lg:col-span-2 flex flex-col">
+                        <h3 class="font-bold text-md border-b pb-2 border-slate-100 dark:border-slate-700">🔒 <span data-i18n="audit_logs">Live System Audit Logs</span></h3>
+                        <div id="dashboardAuditLogs" class="overflow-y-auto max-h-60 mt-3 text-xs font-mono space-y-2 flex-grow text-slate-500"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-partners" class="tab-content bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between items-center mb-4 flex-row-reverse-rtl">
+                    <h2 class="font-bold text-lg" data-i18n="contacts_title">👥 Master Contacts Directory</h2>
+                    <button onclick="openModal('partnerModal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition" data-i18n="btn_add_contact">+ Add New Contact</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-400 font-semibold uppercase text-xs">
+                            <tr>
+                                <th class="p-3" data-i18n="th_partner_ref">Ref</th>
+                                <th class="p-3" data-i18n="th_contact_name">Name</th>
+                                <th class="p-3" data-i18n="th_role">Role</th>
+                                <th class="p-3 text-right text-right-rtl" data-i18n="th_action">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="partnersTableBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-sales" class="tab-content space-y-4">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-2 flex-row-reverse-rtl">
+                    <h2 class="font-bold text-lg" data-i18n="invoices_title">🧾 Customer Invoices (A/R)</h2>
+                    <div class="flex gap-2">
+                        <button onclick="exportPDF('customer')" class="bg-slate-700 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-600 transition">📄 PDF</button>
+                        <button onclick="openInvoiceModal('customer')" class="bg-blue-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition" data-i18n="btn_add_invoice">+ Create Invoice</button>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-400 font-semibold uppercase text-xs">
+                            <tr>
+                                <th class="p-3" data-i18n="th_invoice_id">ID</th>
+                                <th class="p-3" data-i18n="th_client">Client</th>
+                                <th class="p-3">Desc</th>
+                                <th class="p-3" data-i18n="th_amount">Amount</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right text-right-rtl" data-i18n="th_action">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-purchases" class="tab-content space-y-4">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-2 flex-row-reverse-rtl">
+                    <h2 class="font-bold text-lg" data-i18n="bills_title">🛒 Vendor Bills (A/P)</h2>
+                    <div class="flex gap-2">
+                        <button onclick="exportPDF('vendor')" class="bg-slate-700 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-600 transition">📄 PDF</button>
+                        <button onclick="openInvoiceModal('vendor')" class="bg-emerald-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-emerald-700 transition" data-i18n="btn_add_bill">+ Record Bill</button>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-400 font-semibold uppercase text-xs">
+                            <tr>
+                                <th class="p-3" data-i18n="th_bill_id">ID</th>
+                                <th class="p-3" data-i18n="th_vendor">Vendor</th>
+                                <th class="p-3">Desc</th>
+                                <th class="p-3" data-i18n="th_amount">Amount</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right text-right-rtl" data-i18n="th_action">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchaseTableBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-accounting" class="grid grid-cols-1 lg:grid-cols-3 gap-6 tab-content">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 lg:col-span-1 space-y-4">
+                    <h3 class="font-bold text-lg">📊 Chart of Accounts</h3>
+                    <div class="divide-y divide-slate-100 dark:divide-slate-700 text-xs" id="chartOfAccountsContainer"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 lg:col-span-2 space-y-4">
+                    <div class="flex justify-between items-center flex-row-reverse-rtl">
+                        <h3 class="font-bold text-lg" data-i18n="journal_title">⚖️ Double-Entry Journal Postings</h3>
+                        <button onclick="openModal('journalModal')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-2 rounded-lg transition" data-i18n="btn_add_journal">+ Manual Journal</button>
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px]">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-400 font-semibold uppercase text-xs sticky top-0">
+                                <tr>
+                                    <th class="p-3" data-i18n="th_posting_ref">Ref</th>
+                                    <th class="p-3" data-i18n="th_account_head">Account</th>
+                                    <th class="p-3 text-emerald-600" data-i18n="th_debit">Debit (Dr)</th>
+                                    <th class="p-3 text-rose-600" data-i18n="th_credit">Credit (Cr)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="journalLedgerTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 font-mono text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-reporting" class="grid grid-cols-1 lg:grid-cols-2 gap-6 tab-content">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                    <h3 class="font-bold text-xl border-b pb-3 border-slate-100 dark:border-slate-700" data-i18n="pl_title">📈 Profit & Loss Statement</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between font-semibold border-b pb-1">
+                            <span data-i18n="pl_op_revenue">Operating Revenue (+)</span>
+                            <span id="plRevenue" class="text-emerald-600">0.00</span>
+                        </div>
+                        <div class="flex justify-between font-semibold border-b pb-1 text-rose-500">
+                            <span data-i18n="pl_op_costs">Operating Costs (-)</span>
+                            <span id="plExpense">0.00</span>
+                        </div>
+                        <div class="flex justify-between font-black text-lg pt-4 border-t-2 border-slate-300 dark:border-slate-600">
+                            <span data-i18n="pl_net_surplus">Net Operating Surplus</span>
+                            <span id="plNetProfit">0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                    <h3 class="font-bold text-xl border-b pb-3 border-slate-100 dark:border-slate-700" data-i18n="bs_title">🏛️ Balance Sheet Report</h3>
+                    <div class="space-y-4 text-sm">
+                        <div>
+                            <h4 class="font-bold text-xs uppercase text-blue-500 mb-1" data-i18n="bs_assets_header">Total Assets</h4>
+                            <div class="flex justify-between border-l border-slate-200 px-2 text-xs">
+                                <span data-i18n="bs_cash">Cash & Banks</span><span id="bsCash">0.00</span>
+                            </div>
+                            <div class="flex justify-between border-l border-slate-200 px-2 text-xs mt-1">
+                                <span data-i18n="bs_ar">Accounts Receivables</span><span id="bsAR">0.00</span>
+                            </div>
+                            <div class="flex justify-between font-bold border-t mt-1 pt-1"><span data-i18n="bs_sum_assets">Total Assets</span><span id="bsTotalAssets">0.00</span></div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs uppercase text-rose-500 mb-1" data-i18n="bs_liabilities_header">Liabilities & Equity</h4>
+                            <div class="flex justify-between border-l border-slate-200 px-2 text-xs">
+                                <span data-i18n="bs_ap">Accounts Payables</span><span id="bsAP">0.00</span>
+                            </div>
+                            <div class="flex justify-between border-l border-slate-200 px-2 text-xs mt-1">
+                                <span>Collected VAT Payables</span><span id="bsVAT">0.00</span>
+                            </div>
+                            <div class="flex justify-between border-l border-slate-200 px-2 text-xs mt-1 text-slate-400">
+                                <span data-i18n="bs_equity">Retained Equity</span><span id="bsEquity">0.00</span>
+                            </div>
+                            <div class="flex justify-between font-bold border-t mt-1 pt-1"><span data-i18n="bs_sum_liabilities">Total Liab & Equity</span><span id="bsTotalLiabilities">0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="partnerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-bold mb-3" data-i18n="btn_add_contact">Add New Contact</h3>
+            <form onsubmit="submitPartner(event)" class="space-y-4">
+                <input type="text" id="partnerNameInput" placeholder="Company/Person Name" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                <select id="partnerTypeInput" class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 outline-none">
+                    <option value="customer">Customer Client (A/R)</option>
+                    <option value="vendor">Supplier Vendor (A/P)</option>
+                </select>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('partnerModal')" class="px-4 py-2 text-slate-500 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="invoiceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            <h3 id="invoiceModalTitle" class="text-lg font-bold mb-2">Create Record</h3>
+            <form onsubmit="submitInvoice(event)" class="space-y-4">
+                <input type="hidden" id="invoiceFlowType">
+                <select id="invoicePartnerSelect" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 outline-none"></select>
+                <input type="text" id="invoiceItemInput" placeholder="Description" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" step="0.01" id="invoicePriceInput" placeholder="Base Price" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                    <input type="number" id="invoiceQtyInput" min="1" value="1" placeholder="Qty" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('invoiceModal')" class="px-4 py-2 text-slate-500 rounded-lg">Cancel</button>
+                    <button type="submit" id="invoiceSubmitBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">Post Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="journalModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-700">
+            <h3 class="text-lg font-bold mb-3" data-i18n="btn_add_journal">Manual Double Journal</h3>
+            <form onsubmit="submitManualJournal(event)" class="space-y-4">
+                <input type="text" id="journalRefInput" placeholder="Memo Ref" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] uppercase text-emerald-500">Debit (Dr)</label>
+                        <select id="journalDebitSelect" class="w-full border dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-700 text-[10px]"></select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-rose-500">Credit (Cr)</label>
+                        <select id="journalCreditSelect" class="w-full border dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-700 text-[10px]"></select>
+                    </div>
+                </div>
+                <input type="number" step="0.01" id="journalAmountInput" placeholder="Amount" required class="w-full border dark:border-slate-600 rounded-lg p-2.5 bg-transparent outline-none">
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('journalModal')" class="px-4 py-2 text-slate-500 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-slate-800 text-white rounded-lg font-semibold">Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ================= 1. CORE CONFIGURATION & i18n =================
+        const DB_KEY = "frontier_erp_v5_multi";
+        let sessionUser = null;
+        let activeLang = "en";
+        let activeCurrency = "USD";
+
+        const systemAccountsBlueprint = {
+            "101000 Cash and Liquidity Banks": 0,
+            "121000 Accounts Receivable (A/R)": 0,
+            "211000 Accounts Payable (A/P)": 0,
+            "220000 Collected VAT Payables": 0,
+            "400000 Corporate Sales Product Revenue": 0,
+            "600000 Operating Costs & Supplier Expenses": 0,
+            "300000 Retained Capital Business Equity": 0
+        };
+
+        const currencySpecs = {
+            USD: { symbol: "$", rate: 1.0, locale: "en-US" },
+            BDT: { symbol: "৳", rate: 118.5, locale: "bn-BD" },
+            EUR: { symbol: "€", rate: 0.92, locale: "de-DE" },
+            GBP: { symbol: "£", rate: 0.78, locale: "en-GB" },
+            JPY: { symbol: "¥", rate: 155.2, locale: "ja-JP" }
+        };
+
+        const i18nDictionary = {
+            en: {
+                app_title: "Frontier Enterprise", btn_logout: "Sign Out",
+                tab_dashboard: "Dashboard", tab_contacts: "Contacts", tab_sales: "Sales (A/R)", 
+                tab_purchases: "Purchases (A/P)", tab_accounting: "Journal & Ledger", tab_reports: "Reports",
+                cash_balance: "Liquid Cash & Banks", ar_balance: "Accounts Receivable", ap_balance: "Accounts Payable", net_revenue: "Net Revenue",
+                quick_ops: "Quick Operations", audit_logs: "Live Audit Logs",
+                btn_add_contact: "➕ Add New Contact", btn_add_invoice: "🧾 Issue Sales Invoice", btn_add_bill: "🛒 Record Vendor Bill", btn_add_journal: "⚖️ Post Manual Journal",
+                contacts_title: "👥 Master Contacts Directory", invoices_title: "🧾 Customer Invoices (A/R)", bills_title: "🛒 Vendor Bills (A/P)", journal_title: "⚖️ Double-Entry Journal Postings", pl_title: "📈 Profit & Loss Statement", bs_title: "🏛️ Balance Sheet Report",
+                th_partner_ref: "Ref", th_contact_name: "Name", th_role: "Role", th_action: "Action",
+                th_invoice_id: "ID", th_bill_id: "ID", th_client: "Client", th_vendor: "Vendor", th_amount: "Amount", th_posting_ref: "Ref", th_account_head: "Account", th_debit: "Debit (Dr)", th_credit: "Credit (Cr)",
+                pl_op_revenue: "Operating Revenue (+)", pl_op_costs: "Operating Costs (-)", pl_net_surplus: "Net Operating Surplus",
+                bs_assets_header: "Total Assets", bs_cash: "Cash & Banks", bs_ar: "Accounts Receivables", bs_sum_assets: "Sum Total Assets",
+                bs_liabilities_header: "Liabilities & Equity", bs_ap: "Accounts Payables", bs_equity: "Retained Equity", bs_sum_liabilities: "Total Liab & Equity",
+                status_paid: "Cleared", status_open: "Open", action_pay: "Pay", action_receive: "Receive"
+            },
+            bn: {
+                app_title: "ফ্রন্টিয়ার এন্টারপ্রাইজ ", btn_logout: "লগআউট",
+                tab_dashboard: "ড্যাশবোর্ড", tab_contacts: "পরিচিতি", tab_sales: "বিক্রয় (A/R)", 
+                tab_purchases: "ক্রয় (A/P)", tab_accounting: "জাবেদা ও খতিয়ান", tab_reports: "প্রতিবেদন",
+                cash_balance: "নগদ ও ব্যাংক স্থিতি", ar_balance: "প্রাপ্য হিসাব", ap_balance: "প্রদেয় হিসাব", net_revenue: "নিট আয়",
+                quick_ops: "কুইক অপারেশনস", audit_logs: "অডিট লগ",
+                btn_add_contact: "➕ নতুন পরিচিতি যোগ", btn_add_invoice: "🧾 ইনভয়েস তৈরি", btn_add_bill: "🛒 ভেন্ডর বিল রেকর্ড", btn_add_journal: "⚖️ ম্যানুয়াল জাবেদা",
+                contacts_title: "👥 মাস্টার পরিচিতি ডিরেক্টরি", invoices_title: "🧾 গ্রাহক ইনভয়েস (A/R)", bills_title: "🛒 ভেন্ডর বিল (A/P)", journal_title: "⚖️ দ্বৈত-সত্তা জাবেদা", pl_title: "📈 লাভ-ক্ষতি বিবরণী", bs_title: "🏛️ উদ্বৃত্তপত্র",
+                th_partner_ref: "রেফ", th_contact_name: "নাম", th_role: "ভূমিকা", th_action: "অ্যাকশন",
+                th_invoice_id: "আইডি", th_bill_id: "আইডি", th_client: "গ্রাহক", th_vendor: "সরবরাহকারী", th_amount: "পরিমাণ", th_posting_ref: "রেফ", th_account_head: "অ্যাকাউন্ট", th_debit: "ডেবিট (Dr)", th_credit: "ক্রেডিট (Cr)",
+                pl_op_revenue: "পরিচালন আয় (+)", pl_op_costs: "পরিচালন ব্যয় (-)", pl_net_surplus: "নিট পরিচালন উদ্বৃত্ত",
+                bs_assets_header: "মোট সম্পদ", bs_cash: "নগদ ও ব্যাংক", bs_ar: "প্রাপ্য হিসাব", bs_sum_assets: "মোট সম্পদ",
+                bs_liabilities_header: "দায় ও ইক্যুইটি", bs_ap: "প্রদেয় হিসাব", bs_equity: "সংরক্ষিত ইক্যুইটি", bs_sum_liabilities: "মোট দায় ও ইক্যুইটি",
+                status_paid: "পরিশোধিত", status_open: "বাকি", action_pay: "পরিশোধ", action_receive: "জমা নিন"
+            },
+            es: {
+                app_title: "Frontier Enterprise", btn_logout: "Salir",
+                tab_dashboard: "Tablero", tab_contacts: "Contactos", tab_sales: "Ventas (A/R)", 
+                tab_purchases: "Compras (A/P)", tab_accounting: "Diario y Mayor", tab_reports: "Reportes",
+                cash_balance: "Efectivo y Bancos", ar_balance: "Cuentas por Cobrar", ap_balance: "Cuentas por Pagar", net_revenue: "Ingresos Netos",
+                quick_ops: "Operaciones Rápidas", audit_logs: "Registros de Auditoría",
+                btn_add_contact: "➕ Nuevo Contacto", btn_add_invoice: "🧾 Emitir Factura", btn_add_bill: "🛒 Registrar Gasto", btn_add_journal: "⚖️ Asiento Manual",
+                contacts_title: "👥 Directorio de Contactos", invoices_title: "🧾 Facturas Clientes (A/R)", bills_title: "🛒 Facturas Prov. (A/P)", journal_title: "⚖️ Asientos de Diario", pl_title: "📈 Pérdidas y Ganancias", bs_title: "🏛️ Balance General",
+                th_partner_ref: "Ref", th_contact_name: "Nombre", th_role: "Rol", th_action: "Acción",
+                th_invoice_id: "ID", th_bill_id: "ID", th_client: "Cliente", th_vendor: "Proveedor", th_amount: "Monto", th_posting_ref: "Ref", th_account_head: "Cuenta", th_debit: "Débito (Dr)", th_credit: "Crédito (Cr)",
+                pl_op_revenue: "Ingresos Op. (+)", pl_op_costs: "Gastos Op. (-)", pl_net_surplus: "Superávit Neto",
+                bs_assets_header: "Total Activos", bs_cash: "Efectivo", bs_ar: "Cuentas por Cobrar", bs_sum_assets: "Suma Activos",
+                bs_liabilities_header: "Pasivo y Patrimonio", bs_ap: "Cuentas por Pagar", bs_equity: "Patrimonio", bs_sum_liabilities: "Suma Pasivo y Pat.",
+                status_paid: "Pagado", status_open: "Abierto", action_pay: "Pagar", action_receive: "Cobrar"
+            },
+            ar: {
+                app_title: "فرونتير إنتربرايز", btn_logout: "خروج",
+                tab_dashboard: "لوحة القيادة", tab_contacts: "جهات الاتصال", tab_sales: "مبيعات (A/R)", 
+                tab_purchases: "مشتريات (A/P)", tab_accounting: "اليومية ودفتر الأستاذ", tab_reports: "التقارير",
+                cash_balance: "النقد والبنوك", ar_balance: "حسابات مدينة", ap_balance: "حسابات دائنة", net_revenue: "صافي الإيرادات",
+                quick_ops: "عمليات سريعة", audit_logs: "سجلات التدقيق",
+                btn_add_contact: "➕ جهة اتصال جديدة", btn_add_invoice: "🧾 إصدار فاتورة", btn_add_bill: "🛒 تسجيل فاتورة مورد", btn_add_journal: "⚖️ قيد يومية يدوي",
+                contacts_title: "👥 دليل جهات الاتصال", invoices_title: "🧾 فواتير العملاء (A/R)", bills_title: "🛒 فواتير الموردين (A/P)", journal_title: "⚖️ قيود اليومية", pl_title: "📈 الأرباح والخسائر", bs_title: "🏛️ الميزانية العمومية",
+                th_partner_ref: "مرجع", th_contact_name: "الاسم", th_role: "الدور", th_action: "إجراء",
+                th_invoice_id: "معرف", th_bill_id: "معرف", th_client: "عميل", th_vendor: "مورد", th_amount: "مبلغ", th_posting_ref: "مرجع", th_account_head: "الحساب", th_debit: "مدين (Dr)", th_credit: "دائن (Cr)",
+                pl_op_revenue: "إيرادات التشغيل (+)", pl_op_costs: "تكاليف التشغيل (-)", pl_net_surplus: "فائض التشغيل",
+                bs_assets_header: "إجمالي الأصول", bs_cash: "نقد وبنوك", bs_ar: "ذمم مدينة", bs_sum_assets: "إجمالي الأصول",
+                bs_liabilities_header: "الالتزامات وحقوق الملكية", bs_ap: "ذمم دائنة", bs_equity: "حقوق الملكية", bs_sum_liabilities: "إجمالي الالتزامات",
+                status_paid: "مدفوع", status_open: "مفتوح", action_pay: "دفع", action_receive: "استلام"
+            },
+            ja: {
+                app_title: "フロンティア", btn_logout: "ログアウト",
+                tab_dashboard: "ダッシュボード", tab_contacts: "連絡先", tab_sales: "売上 (A/R)", 
+                tab_purchases: "仕入 (A/P)", tab_accounting: "仕訳・元帳", tab_reports: "レポート",
+                cash_balance: "現金・預金", ar_balance: "売掛金", ap_balance: "買掛金", net_revenue: "純収益",
+                quick_ops: "クイック操作", audit_logs: "監査ログ",
+                btn_add_contact: "➕ 新規連絡先", btn_add_invoice: "🧾 請求書発行", btn_add_bill: "🛒 支払請求書登録", btn_add_journal: "⚖️ 手動仕訳",
+                contacts_title: "👥 取引先一覧", invoices_title: "🧾 顧客請求書 (A/R)", bills_title: "🛒 仕入先請求書 (A/P)", journal_title: "⚖️ 複式簿記仕訳帳", pl_title: "📈 損益計算書", bs_title: "🏛️ 貸借対照表",
+                th_partner_ref: "参照", th_contact_name: "名前", th_role: "役割", th_action: "アクション",
+                th_invoice_id: "ID", th_bill_id: "ID", th_client: "顧客", th_vendor: "仕入先", th_amount: "金額", th_posting_ref: "参照", th_account_head: "勘定科目", th_debit: "借方 (Dr)", th_credit: "貸方 (Cr)",
+                pl_op_revenue: "営業収益 (+)", pl_op_costs: "営業費用 (-)", pl_net_surplus: "営業利益",
+                bs_assets_header: "資産合計", bs_cash: "現預金", bs_ar: "売掛金", bs_sum_assets: "資産合計",
+                bs_liabilities_header: "負債・純資産", bs_ap: "買掛金", bs_equity: "利益剰余金", bs_sum_liabilities: "負債・純資産合計",
+                status_paid: "決済済", status_open: "未決済", action_pay: "支払う", action_receive: "受け取る"
+            }
+        };
+
+        function currencyFormat(val) {
+            const config = currencySpecs[activeCurrency];
+            const converted = val * config.rate;
+            return new Intl.NumberFormat(config.locale, {
+                style: "currency", currency: activeCurrency, currencyDisplay: "symbol"
+            }).format(converted);
+        }
+
+        // ================= 2. AUTHENTICATION & MULTI-TENANCY =================
+        function getDB() { return JSON.parse(localStorage.getItem(DB_KEY) || "[]"); }
+        function saveDB(data) { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
+        
+        function saveCurrentUserState() {
+            if(!sessionUser) return;
+            const db = getDB();
+            const index = db.findIndex(u => u.username === sessionUser.username);
+            if(index > -1) { db[index] = sessionUser; saveDB(db); }
+        }
+
+        function switchAuthView(id) {
+            document.querySelectorAll('.auth-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const db = getDB();
+            const user = document.getElementById('reg-name').value.trim();
+            if(db.find(u => u.username.toLowerCase() === user.toLowerCase())) { alert("Username exists!"); return; }
+            
+            const newUser = {
+                username: user, instName: document.getElementById('reg-inst-name').value.trim(), password: document.getElementById('reg-pass').value,
+                erpState: { partners: [], transactions: [], journalLines: [], audit: [] }
+            };
+            db.push(newUser); saveDB(db);
+            sessionUser = newUser; bootDashboard();
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const db = getDB();
+            const u = document.getElementById('login-name').value;
+            const p = document.getElementById('login-pass').value;
+            const user = db.find(x => x.username.toLowerCase() === u.toLowerCase() && x.password === p);
+            if(user) { sessionUser = user; bootDashboard(); } else { alert("Invalid credentials."); }
+        }
+
+        function logout() {
+            sessionUser = null;
+            document.getElementById('app-dashboard').classList.add('hidden');
+            document.getElementById('auth-gateway').classList.remove('hidden');
+            switchAuthView('view-login');
+        }
+
+        function bootDashboard() {
+            document.getElementById('auth-gateway').classList.add('hidden');
+            document.getElementById('app-dashboard').classList.remove('hidden');
+            document.getElementById('ui-user-name').innerText = sessionUser.username;
+            document.getElementById('ui-inst-name').innerText = sessionUser.instName;
+            
+            const accountsKeys = Object.keys(systemAccountsBlueprint);
+            const coaOptionsHTML = accountsKeys.map(k => `<option value="${k}">${k}</option>`).join('');
+            document.getElementById('journalDebitSelect').innerHTML = coaOptionsHTML;
+            document.getElementById('journalCreditSelect').innerHTML = coaOptionsHTML;
+            
+            switchTab('dashboard');
+            applyLanguageTranslations();
+            recomputeAndRender();
+        }
+
+        // ================= 3. UI, TAB & MODAL CONTROLLERS =================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('border-blue-600', 'text-blue-600', 'font-bold'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('btn-' + tabId).classList.add('border-blue-600', 'text-blue-600', 'font-bold');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function toggleDark() { document.documentElement.classList.toggle('dark'); }
+
+        function changeLanguage(langCode) {
+            activeLang = langCode;
+            document.body.classList.toggle('rtl-layout', langCode === 'ar');
+            applyLanguageTranslations();
+            recomputeAndRender(); // Re-render tables to apply dynamic string translations
+        }
+
+        function changeCurrency(currCode) {
+            activeCurrency = currCode;
+            recomputeAndRender();
+        }
+
+        function applyLanguageTranslations() {
+            const strings = i18nDictionary[activeLang] || i18nDictionary['en'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (strings[key]) el.textContent = strings[key];
+            });
+        }
+
+        // ================= 4. ERP BUSINESS LOGIC =================
+        function pushAudit(text) {
+            sessionUser.erpState.audit.unshift({ time: new Date().toLocaleTimeString(), text });
+            saveCurrentUserState();
+        }
+
+        function submitPartner(e) {
+            e.preventDefault();
+            const name = document.getElementById('partnerNameInput').value.trim();
+            const type = document.getElementById('partnerTypeInput').value;
+            sessionUser.erpState.partners.push({ id: (type === 'customer' ? 'CUST-' : 'VEND-') + Date.now().toString().slice(-4), name, type });
+            pushAudit(`Partner Added: ${name}`);
+            closeModal('partnerModal'); recomputeAndRender();
+        }
+
+        function openInvoiceModal(type) {
+            const partners = sessionUser.erpState.partners.filter(p => p.type === type);
+            if(!partners.length) return alert("Please create a partner for this role first.");
+            document.getElementById('invoiceFlowType').value = type;
+            document.getElementById('invoicePartnerSelect').innerHTML = partners.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            document.getElementById('invoiceModalTitle').innerText = type === 'customer' ? 'Issue Customer Invoice' : 'Record Vendor Bill';
+            openModal('invoiceModal');
+        }
+
+        function submitInvoice(e) {
+            e.preventDefault();
+            const type = document.getElementById('invoiceFlowType').value;
+            const partner = document.getElementById('invoicePartnerSelect').value;
+            const item = document.getElementById('invoiceItemInput').value.trim();
+            const basePrice = parseFloat(document.getElementById('invoicePriceInput').value);
+            const qty = parseInt(document.getElementById('invoiceQtyInput').value);
+            const subtotal = basePrice * qty; const vat = subtotal * 0.15; const total = subtotal + vat;
+            const docId = (type === 'customer' ? 'INV-' : 'BILL-') + Date.now().toString().slice(-5);
+            
+            sessionUser.erpState.transactions.unshift({ id: docId, type, partner, item: `${item} (x${qty})`, amount: total, subtotal, vat, status: 'Open' });
+            postDocumentToLedger(docId, type, subtotal, vat, total);
+            pushAudit(`Drafted & Posted ${docId}`);
+            closeModal('invoiceModal'); recomputeAndRender();
+        }
+
+        function postDocumentToLedger(docId, type, subtotal, vat, total) {
+            const d = new Date().toLocaleDateString();
+            const lines = sessionUser.erpState.journalLines;
+            if(type === 'customer') {
+                lines.push({ date: d, ref: docId, account: "121000 Accounts Receivable (A/R)", debit: total, credit: 0 });
+                lines.push({ date: d, ref: docId, account: "400000 Corporate Sales Product Revenue", debit: 0, credit: subtotal });
+                lines.push({ date: d, ref: docId, account: "220000 Collected VAT Payables", debit: 0, credit: vat });
+            } else {
+                lines.push({ date: d, ref: docId, account: "600000 Operating Costs & Supplier Expenses", debit: subtotal, credit: 0 });
+                lines.push({ date: d, ref: docId, account: "220000 Collected VAT Payables", debit: vat, credit: 0 });
+                lines.push({ date: d, ref: docId, account: "211000 Accounts Payable (A/P)", debit: 0, credit: total });
+            }
+        }
+
+        function settlePaymentGateway(docId) {
+            const doc = sessionUser.erpState.transactions.find(t => t.id === docId);
+            if(!doc || doc.status === 'Cleared') return;
+            doc.status = 'Cleared';
+            const d = new Date().toLocaleDateString();
+            const lines = sessionUser.erpState.journalLines;
+            if(doc.type === 'customer') {
+                lines.push({ date: d, ref: `PAY-${docId}`, account: "101000 Cash and Liquidity Banks", debit: doc.amount, credit: 0 });
+                lines.push({ date: d, ref: `PAY-${docId}`, account: "121000 Accounts Receivable (A/R)", debit: 0, credit: doc.amount });
+            } else {
+                lines.push({ date: d, ref: `PAY-${docId}`, account: "211000 Accounts Payable (A/P)", debit: doc.amount, credit: 0 });
+                lines.push({ date: d, ref: `PAY-${docId}`, account: "101000 Cash and Liquidity Banks", debit: 0, credit: doc.amount });
+            }
+            pushAudit(`Payment cleared: ${docId}`);
+            recomputeAndRender();
+        }
+
+        function submitManualJournal(e) {
+            e.preventDefault();
+            const ref = "MAN-" + document.getElementById('journalRefInput').value.trim();
+            const drAcc = document.getElementById('journalDebitSelect').value;
+            const crAcc = document.getElementById('journalCreditSelect').value;
+            const amt = parseFloat(document.getElementById('journalAmountInput').value);
+            if(drAcc === crAcc) return alert("Accounts must differ.");
+            const d = new Date().toLocaleDateString();
+            sessionUser.erpState.journalLines.push({ date: d, ref, account: drAcc, debit: amt, credit: 0 });
+            sessionUser.erpState.journalLines.push({ date: d, ref, account: crAcc, debit: 0, credit: amt });
+            pushAudit(`Manual JRN: ${ref}`);
+            closeModal('journalModal'); recomputeAndRender();
+        }
+
+        function recomputeAndRender() {
+            saveCurrentUserState();
+            const state = sessionUser.erpState;
+            const strings = i18nDictionary[activeLang] || i18nDictionary['en'];
+            
+            // 1. Calculate Balances
+            let balances = structuredClone(systemAccountsBlueprint);
+            state.journalLines.forEach(ln => {
+                if(balances[ln.account] !== undefined) {
+                    if (ln.account.startsWith("101000") || ln.account.startsWith("121000") || ln.account.startsWith("600000")) {
+                        balances[ln.account] += (ln.debit - ln.credit);
+                    } else { balances[ln.account] += (ln.credit - ln.debit); }
+                }
+            });
+
+            // 2. Metrics & Reports Update
+            document.getElementById('statCash').innerText = document.getElementById('bsCash').innerText = currencyFormat(balances["101000 Cash and Liquidity Banks"]);
+            document.getElementById('statAR').innerText = document.getElementById('bsAR').innerText = currencyFormat(balances["121000 Accounts Receivable (A/R)"]);
+            document.getElementById('statAP').innerText = document.getElementById('bsAP').innerText = currencyFormat(balances["211000 Accounts Payable (A/P)"]);
+            
+            const revVal = balances["400000 Corporate Sales Product Revenue"];
+            const expVal = balances["600000 Operating Costs & Supplier Expenses"];
+            document.getElementById('statRevenue').innerText = document.getElementById('plRevenue').innerText = currencyFormat(revVal);
+            document.getElementById('plExpense').innerText = currencyFormat(expVal);
+            document.getElementById('plNetProfit').innerText = currencyFormat(revVal - expVal);
+
+            document.getElementById('bsTotalAssets').innerText = currencyFormat(balances["101000 Cash and Liquidity Banks"] + balances["121000 Accounts Receivable (A/R)"]);
+            document.getElementById('bsVAT').innerText = currencyFormat(balances["220000 Collected VAT Payables"]);
+            const equity = balances["300000 Retained Capital Business Equity"] + (revVal - expVal);
+            document.getElementById('bsEquity').innerText = currencyFormat(equity);
+            document.getElementById('bsTotalLiabilities').innerText = currencyFormat(balances["211000 Accounts Payable (A/P)"] + balances["220000 Collected VAT Payables"] + equity);
+
+            // 3. Render Tables
+            document.getElementById('dashboardAuditLogs').innerHTML = state.audit.map(a => `<div class="p-1 border-b border-slate-100 dark:border-slate-800">[${a.time}] ${a.text}</div>`).join("");
+            
+            document.getElementById('partnersTableBody').innerHTML = state.partners.map(p => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20"><td class="p-3 font-bold">${p.id}</td><td class="p-3">${p.name}</td><td class="p-3 uppercase text-[10px] font-bold">${p.type}</td><td class="p-3 text-right">-</td></tr>`).join('');
+
+            document.getElementById('salesTableBody').innerHTML = state.transactions.filter(t => t.type === 'customer').map(s => {
+                const paid = s.status === 'Cleared';
+                return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20 text-xs">
+                    <td class="p-3 font-bold">${s.id}</td><td class="p-3">${s.partner}</td><td class="p-3">${s.item}</td><td class="p-3 font-bold">${currencyFormat(s.amount)}</td>
+                    <td class="p-3">${paid ? strings.status_paid : strings.status_open}</td>
+                    <td class="p-3 text-right">${!paid ? `<button onclick="settlePaymentGateway('${s.id}')" class="bg-blue-600 text-white px-2 py-1 rounded">${strings.action_receive}</button>` : `✓`}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('purchaseTableBody').innerHTML = state.transactions.filter(t => t.type === 'vendor').map(b => {
+                const paid = b.status === 'Cleared';
+                return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20 text-xs">
+                    <td class="p-3 font-bold">${b.id}</td><td class="p-3">${b.partner}</td><td class="p-3">${b.item}</td><td class="p-3 font-bold">${currencyFormat(b.amount)}</td>
+                    <td class="p-3">${paid ? strings.status_paid : strings.status_open}</td>
+                    <td class="p-3 text-right">${!paid ? `<button onclick="settlePaymentGateway('${b.id}')" class="bg-slate-700 text-white px-2 py-1 rounded">${strings.action_pay}</button>` : `✓`}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('journalLedgerTableBody').innerHTML = state.journalLines.slice().reverse().map(j => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20"><td class="p-3"><b>${j.ref}</b></td><td class="p-3 text-[10px]">${j.account}</td><td class="p-3 text-emerald-600">${j.debit>0?currencyFormat(j.debit):'-'}</td><td class="p-3 text-rose-500">${j.credit>0?currencyFormat(j.credit):'-'}</td></tr>`).join('');
+
+            document.getElementById('chartOfAccountsContainer').innerHTML = Object.keys(balances).map(key => `
+                <div class="py-2 flex justify-between"><span>${key}</span><span class="font-bold ${balances[key]<0?'text-rose-500':''}">${currencyFormat(balances[key])}</span></div>`).join('');
+        }
+
+        function exportPDF(type) {
+            const records = sessionUser.erpState.transactions.filter(t => t.type === type);
+            if (records.length === 0) return;
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFontSize(14); doc.text(`${sessionUser.instName} - ${type === 'customer' ? 'Sales Invoices' : 'Vendor Bills'}`, 14, 20);
+            doc.autoTable({
+                head: [["ID", "Partner", "Desc", "Amount", "Status"]],
+                body: records.map(r => [r.id, r.partner, r.item, r.amount.toFixed(2), r.status]),
+                startY: 30, theme: 'grid', headStyles: { fillColor: type === 'customer' ? [37, 99, 235] : [5, 150, 105] }
+            });
+            doc.save(`Ledger_Export_${Date.now()}.pdf`);
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registered successfully with scope: ', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
