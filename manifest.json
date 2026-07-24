@@ -1,17 +1,40 @@
 {
-  "name": "Frontier Enterprise",
-  "short_name": "Frontier ERP",
+  "name": "Frontier OS Enterprise",
+  "short_name": "Frontier OS",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#0f172a",
   "theme_color": "#3b82f6",
-  "description": "Secure Financial Core v5.0",
+  "description": "Secure Financial Core v6.0",
   "icons": [
     {
-      "src": "./icon.png",
-      "sizes": "192x192 512x512",
+      "src": "icon.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Issue Sales Invoice",
+      "short_name": "New Invoice",
+      "description": "Record a new accounts receivable entry",
+      "url": "./index.html?action=invoice",
+      "icons": [{ "src": "icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Post Manual Journal",
+      "short_name": "New Journal",
+      "description": "Post a double-entry ledger record",
+      "url": "./index.html?action=journal",
+      "icons": [{ "src": "icon.png", "sizes": "192x192" }]
     }
   ]
 }
