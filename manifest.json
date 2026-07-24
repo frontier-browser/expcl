@@ -1,6 +1,6 @@
 {
-  "name": "Frontier OS Enterprise",
-  "short_name": "Frontier OS",
+  "name": "Frontier Enterprise",
+  "short_name": "Frontier ERP",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait-primary",
